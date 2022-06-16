@@ -4,7 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # CUSTOM
+CopyToMSFS.ps1
 *CopyToMSFS.ps1
+*/CopyToMSFS.ps1
+PilotsDeck_FNX2PLD/CopyToMSFS.ps1
+
 
 # User-specific files
 *.rsuser
