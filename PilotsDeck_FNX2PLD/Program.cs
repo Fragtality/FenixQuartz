@@ -22,11 +22,11 @@ namespace PilotsDeck_FNX2PLD
         {
             try
             {
-                //Init Prog, Open Process, Open FSUIPC
+                //Init Prog, Open Process/FSUIPC, Wait for Connect
                 if (!Initialize())
                     return;
 
-                //Search Locations for Patterns
+                //Search Memory Locations for Patterns
                 scanner.SearchPatterns(elementManager.Patterns.Values.ToList());
 
                 foreach (var pattern in elementManager.Patterns)
@@ -42,6 +42,7 @@ namespace PilotsDeck_FNX2PLD
                 CancellationToken cancellationToken = new CancellationToken();
                 Stopwatch watch = new Stopwatch();
                 int measures = 0;
+                int averageTick = 150;
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -52,9 +53,9 @@ namespace PilotsDeck_FNX2PLD
 
                     watch.Stop();
                     measures++;
-                    if (measures > 50)
+                    if (measures > averageTick)
                     {
-                        Log.Logger.Debug($"Program: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / measures)}ms --------------------------------");
+                        Log.Logger.Debug($"Program: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / averageTick)}ms --------------------------------");
                         measures = 0;
                         watch.Reset();
                     }

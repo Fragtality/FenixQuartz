@@ -11,7 +11,6 @@ namespace PilotsDeck_FNX2PLD
         private Dictionary<string, Offset<string>> IPCOffsets;
         private static NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
-        //private int nextOffset;
 
         public ElementManager()
         {
@@ -25,7 +24,6 @@ namespace PilotsDeck_FNX2PLD
                 { "COM", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF FF FF FF FF") },
                 { "XPDR", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80") },
-                //{ "BAT2", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32") },
                 { "BAT2", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00") },
                 { "RUDDER1", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "RUDDER2", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) }
@@ -53,8 +51,6 @@ namespace PilotsDeck_FNX2PLD
             nextOffset = AddOffset(Patterns["BAT1"], "bat1Display", -0x2C, 8, "double", 5, nextOffset);
 
             //BAT2
-            //AddOffset(Patterns["BAT2"], "bat2DisplayA", -0x284, 8, "double");
-            //nextOffset = AddOffset(Patterns["BAT2"], "bat2DisplayB", -0x544, 8, "double", 5, nextOffset);
             nextOffset = AddOffset(Patterns["BAT2"], "bat2Display", +0x444, 8, "double", 5, nextOffset);
 
             //RUDDER
@@ -247,10 +243,6 @@ namespace PilotsDeck_FNX2PLD
             double value = Patterns["BAT1"].MemoryOffsets["bat1Display"].GetValue() ?? 0.0;
             IPCOffsets["bat1Display"].Value = string.Format(formatInfo, "{0:F1}", value);
 
-            //value = Patterns["BAT2"].MemoryOffsets["bat2DisplayA"].GetValue() ?? 0.0;
-            //if (value == 0.0)
-            //    value = Patterns["BAT2"].MemoryOffsets["bat2DisplayB"].GetValue() ?? 0.0;
-            //IPCOffsets["bat2DisplayB"].Value = string.Format(formatInfo, "{0:F1}", value);
             value = Patterns["BAT2"].MemoryOffsets["bat2Display"].GetValue() ?? 0.0;
             IPCOffsets["bat2Display"].Value = string.Format(formatInfo, "{0:F1}", value);
         }

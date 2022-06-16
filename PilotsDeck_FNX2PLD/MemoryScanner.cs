@@ -72,13 +72,11 @@ namespace PilotsDeck_FNX2PLD
             MEMORY_BASIC_INFORMATION64 memInfo = new();
             ulong addrBase;
             ulong addrMax = sysInfo.maximumApplicationAddress;
-            ulong result;
             int matches;
 
             foreach(var pattern in patterns)
             {
                 addrBase = sysInfo.minimumApplicationAddress;
-                result = 0;
                 matches = 0;
 
                 while (addrBase < addrMax && pattern.Location == 0 && VirtualQueryEx(procHandle, addrBase, out memInfo, 48) != 0)
@@ -105,22 +103,6 @@ namespace PilotsDeck_FNX2PLD
             int lastResult = -1;
             bool readNewChunk = true;
 
-            //do
-            //{
-            //    if (ReadProcessMemory(procHandle, addrBase, memBuff, ChunkSize, ref bytesRead) && bytesRead == ChunkSize)
-            //    {
-            //        result = BoyerMoore.IndexOf(memBuff, pattern);
-            //        if (result != -1)
-            //        {
-            //            matches++;
-            //            if (matches == matchNumber)
-            //                addrPattern = addrBase + (ulong)result;
-            //        }
-            //    }
-
-            //    addrBase += (ulong)ChunkSize;
-            //}
-            //while (addrPattern == 0 && addrBase < addrEnd);
             do
             {
                 if (readNewChunk)
@@ -168,8 +150,6 @@ namespace PilotsDeck_FNX2PLD
                 }
             }
             while (pattern.Location == 0 && addrBase < addrEnd);
-
-            //return pattern.Location;
         }
 
         public static ulong CalculateLocation(ulong baseAddr, long offset)
