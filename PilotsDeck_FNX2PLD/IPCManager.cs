@@ -62,12 +62,22 @@ namespace PilotsDeck_FNX2PLD
             return FSUIPCConnection.IsOpen;
         }
 
+        public static double ReadLVar(string name)
+        {
+            double result = 0;
+
+            if (MSFSVariableServices.LVars.Exists(name))
+                result = MSFSVariableServices.LVars[name].Value;
+
+            return result;
+        }
+
         public static bool GetCurrentAircraft()
         {
             Log.Logger.Information("IPCManager: Read Current Aircraft");
 
 
-            if (FSUIPCConnection.IsOpen)
+            if (OpenSafeFSUIPC())
             {
                 Offset airOffset = new Offset(0x3C00, 256);
                 FSUIPCConnection.Process();

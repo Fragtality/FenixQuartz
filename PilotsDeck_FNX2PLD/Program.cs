@@ -13,6 +13,8 @@ namespace PilotsDeck_FNX2PLD
         public static readonly bool waitForConnect = Convert.ToBoolean(ConfigurationManager.AppSettings["waitForConnect"]);
         public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
+        public static readonly int waitReady = Convert.ToInt32(ConfigurationManager.AppSettings["waitReady"]);
+        public static readonly int waitTick = Convert.ToInt32(ConfigurationManager.AppSettings["waitTick"]);
         public static readonly string groupName = "FNX2PLD";
 
         private static MemoryScanner scanner;
@@ -79,26 +81,29 @@ namespace PilotsDeck_FNX2PLD
             else
                 loggerConfiguration.MinimumLevel.Information();
             Log.Logger = loggerConfiguration.CreateLogger();
-            Log.Information($"FNX2PLD started! Log Level: {logLevel} Log File: {logFilePath}");
+            Log.Information($"Program: FNX2PLD started! Log Level: {logLevel} Log File: {logFilePath}");
 
             if (!FSUIPCConnection.IsOpen && waitForConnect)
                 IPCManager.WaitForConnection();
             else
                 IPCManager.OpenSafeFSUIPC();
 
-            Offset<byte> isMenu = new(groupName, 0x3365);
-            Offset<Int16> isPaused = new(groupName, 0x0262);
+            Offset<byte> isMenu = new(0x3365);
+            Offset<Int16> isPaused = new(0x0262);
 
             do
             {
-                Log.Information($"Wating for MSFS/Fenix to become ready, sleeping 5s");
-                Thread.Sleep(5000);
-                FSUIPCConnection.Process(groupName);
+                Log.Information($"Program: Wating for MSFS/Fenix to become ready, sleeping {waitTick}s");
+                Thread.Sleep(waitTick * 1000);
+                FSUIPCConnection.Process();
             }
-            while (!IPCManager.OpenSafeFSUIPC() || isMenu.Value != 0 || isPaused.Value != 0);
+            while (!IPCManager.GetCurrentAircraft() || isMenu.Value == 1 || isPaused.Value == 1);
 
             if (!IPCManager.GetCurrentAircraft())
+            {
+                Log.Error($"Program: MSFS now read but loaded Aircraft is not a Fenix! Closing ...");
                 return false;
+            }
 
             Process? fenixProc = null;
 
@@ -109,36 +114,32 @@ namespace PilotsDeck_FNX2PLD
                     scanner = new MemoryScanner(fenixProc);
                 else
                 {
-                    Log.Warning($"Could not find Process {FenixExecutable}, trying again in 5s");
-                    Thread.Sleep(5000);
+                    Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick}s");
+                    Thread.Sleep(waitTick * 1000);
                 }
             }
-            Log.Information($"Waiting for User to click Ready to Fly, sleeping 20s");
-            Thread.Sleep(20000);
+            Log.Information($"Program: Waiting for User to click Ready to Fly, sleeping {waitReady}s");
+            Thread.Sleep(waitReady * 1000);
 
             if (!scanner.IsInitialized())
             {
-                Log.Error($"Could not open Process {FenixExecutable}!");
+                Log.Error($"Program: Could not open Process {FenixExecutable}!  Closing ...");
                 return false;
             }
 
-            Log.Information($"Initializing WASM Module");
+            Log.Information($"Program: Initializing WASM Module");
             MSFSVariableServices.Init(Process.GetCurrentProcess().MainWindowHandle);
             MSFSVariableServices.LVARUpdateFrequency = 0;
             MSFSVariableServices.Start();
             if (!MSFSVariableServices.IsRunning)
             {
-                Log.Error($"WASM Module is not running!");
+                Log.Error($"Program: WASM Module is not running! Closing ...");
                 return false;
             }
 
             elementManager = new ElementManager();
-
             
-
             return true;
         }
-
-        
     }
 }

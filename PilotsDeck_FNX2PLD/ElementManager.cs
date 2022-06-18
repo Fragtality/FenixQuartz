@@ -12,6 +12,10 @@ namespace PilotsDeck_FNX2PLD
         private static NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
 
+        private double lastSwitchVS;
+        private bool isAltVs = false;
+        private double lastSwitchAlt;
+
         public ElementManager()
         {
             int nextOffset = Program.offsetBase;
@@ -31,9 +35,11 @@ namespace PilotsDeck_FNX2PLD
 
             //FCU
             nextOffset = AddOffset(Patterns["FCU"], "fcuSpd", -0x6C, 8, "double", 10, nextOffset);
-            nextOffset = AddOffset(Patterns["FCU"], "fcuHdg", -0x60, 4, "int", 9, nextOffset);
+            nextOffset = AddOffset(Patterns["FCU"], "fcuHdgDisplay", -0x20, 4, "int", 9, nextOffset);
+            AddOffset(Patterns["FCU"], "fcuHdgFma", -0x60, 4, "int");
             nextOffset = AddOffset(Patterns["FCU"], "fcuAlt", -0x5C, 4, "int", 7, nextOffset);
-            nextOffset = AddOffset(Patterns["FCU"], "fcuVS", -0x18, 4, "int", 10, nextOffset);
+            nextOffset = AddOffset(Patterns["FCU"], "fcuVsDisplay", -0x18, 4, "int", 10, nextOffset);
+            AddOffset(Patterns["FCU"], "fcuVsFma", -0x64, 4, "int");
 
 
             //ISIS
@@ -56,6 +62,9 @@ namespace PilotsDeck_FNX2PLD
             //RUDDER
             nextOffset = AddOffset(Patterns["RUDDER1"], "rudderDisplay1", -0xEC, 8, "double", 6, nextOffset);
             AddOffset(Patterns["RUDDER2"], "rudderDisplay2", -0xEC, 8, "double");
+
+            //VS Selected
+            IPCOffsets.Add("isAltVs", new Offset<string>(Program.groupName, nextOffset, 1, true));
         }
 
         private int AddOffset(MemoryPattern pattern, string id, long memOffset, int memSize, string type, int ipcSize = 0, int nextOffset = 0)
@@ -75,12 +84,14 @@ namespace PilotsDeck_FNX2PLD
         {
             if (firstUpdate)
             {
+                Log.Information($"ElementManager: First Update - Reloading WASM to get all Lvars");
                 MSFSVariableServices.Reload();
                 firstUpdate = false;
                 Thread.Sleep(100);
             }
-            bool isLightTest = FSUIPCConnection.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
+            bool isLightTest = IPCManager.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
 
+            UpdateFMA();
             UpdateFCU(Patterns["FCU"], isLightTest);
             UpdateISIS(Patterns["ISIS"]);
             UpdateCom(Patterns["COM"]);
@@ -91,16 +102,34 @@ namespace PilotsDeck_FNX2PLD
             FSUIPCConnection.Process(Program.groupName);
         }
 
+        private void UpdateFMA()
+        {
+            double switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
+            if (switchVS != lastSwitchVS)
+                isAltVs = true;
+            lastSwitchVS = switchVS;
+
+            double switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
+            if (switchAlt > lastSwitchAlt)
+                isAltVs = false;
+            lastSwitchAlt = switchAlt;
+
+            if (isAltVs)
+                IPCOffsets["isAltVs"].Value = "1";
+            else
+                IPCOffsets["isAltVs"].Value = "0";
+        }
+
         private void UpdateFCU(MemoryPattern fcu, bool isLightTest)
         {
-            bool isModeTrkFpa = FSUIPCConnection.ReadLVar("I_FCU_TRACK_FPA_MODE") == 1;
-            bool isModeHdgVs = FSUIPCConnection.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
+            bool isModeTrkFpa = IPCManager.ReadLVar("I_FCU_TRACK_FPA_MODE") == 1;
+            bool isModeHdgVs = IPCManager.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
             bool isFcuPowered = isModeHdgVs || isModeTrkFpa;
-            bool isModeSpd = FSUIPCConnection.ReadLVar("I_FCU_SPEED_MODE") == 1;
-            bool isSpdManaged = FSUIPCConnection.ReadLVar("I_FCU_SPEED_MANAGED") == 1;
-            bool isHdgManaged = FSUIPCConnection.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
-            bool isAltManaged = FSUIPCConnection.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
-            bool isAltHundred = FSUIPCConnection.ReadLVar("S_FCU_ALTITUDE_SCALE") == 0;
+            bool isModeSpd = IPCManager.ReadLVar("I_FCU_SPEED_MODE") == 1;
+            bool isSpdManaged = IPCManager.ReadLVar("I_FCU_SPEED_MANAGED") == 1;
+            bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
+            bool isAltManaged = IPCManager.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
+            bool isAltHundred = IPCManager.ReadLVar("S_FCU_ALTITUDE_SCALE") == 0;
 
             //SPEED
             string result = "";
@@ -120,7 +149,7 @@ namespace PilotsDeck_FNX2PLD
                     else
                     {
                         if (isModeSpd)
-                            result += ((int)fcu.MemoryOffsets["fcuSpd"].GetValue()).ToString();
+                            result += ((int)Math.Round(fcu.MemoryOffsets["fcuSpd"].GetValue())).ToString();
                         else
                             result += "." + ((int)Math.Round(fcu.MemoryOffsets["fcuSpd"].GetValue())).ToString();
                     }
@@ -141,13 +170,23 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "TRK\n";
 
+                    string hdgDisp = fcu.MemoryOffsets["fcuHdgDisplay"].GetValue()?.ToString("D3") ?? "000";
+                    string hdgFma = fcu.MemoryOffsets["fcuHdgFma"].GetValue()?.ToString("D3") ?? "000";
+
                     if (isHdgManaged)
-                        result += "---*";
+                    {
+                        if (hdgDisp != "000")
+                            result += hdgDisp + "*";
+                        else
+                            result += "---*";
+                    }
                     else
-                        result += fcu.MemoryOffsets["fcuHdg"].GetValue()?.ToString("D3") ?? "000";
+                    {
+                        result += hdgFma;
+                    }
                 }
             }
-            IPCOffsets["fcuHdg"].Value = result;
+            IPCOffsets["fcuHdgDisplay"].Value = result;
 
             //ALT
             result = "";
@@ -179,8 +218,13 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "FPA\n";
 
-                    int vs = fcu.MemoryOffsets["fcuVS"].GetValue() ?? 0;
-                    if (isAltManaged && vs == 0)
+                    int vs = 0;
+                    if (isAltVs)
+                        vs = fcu.MemoryOffsets["fcuVsFma"].GetValue() ?? 0;
+                    else
+                        vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
+
+                    if (!isAltVs && vs == 0)
                         result += "-----";
                     else if (isModeHdgVs)
                     {
@@ -199,7 +243,7 @@ namespace PilotsDeck_FNX2PLD
                     }
                 }
             }
-            IPCOffsets["fcuVS"].Value = result;
+            IPCOffsets["fcuVsDisplay"].Value = result;
         }
 
         private void UpdateISIS(MemoryPattern isis)
@@ -215,8 +259,8 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateCom(MemoryPattern com)
         {
-            double value = com.MemoryOffsets["comStandby"].GetValue() ?? 0.0;
-            if (value > 0.0)
+            int value = com.MemoryOffsets["comStandby"].GetValue() ?? 0;
+            if (value > 0)
                 IPCOffsets["comStandby"].Value = value.ToString();
             else
                 IPCOffsets["comStandby"].Value = "";
@@ -254,9 +298,9 @@ namespace PilotsDeck_FNX2PLD
                 value = Patterns["RUDDER2"].MemoryOffsets["rudderDisplay2"].GetValue() ?? 0.0;
             
             string result;
-            if (value < 0.0)
+            if (value <= -0.1)
                 result = "L ";
-            else if (value > 0.0)
+            else if (value >= 0.1)
                 result = "R ";
             else
                 result = "  ";
