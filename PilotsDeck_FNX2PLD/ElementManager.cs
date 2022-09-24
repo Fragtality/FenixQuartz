@@ -1,6 +1,8 @@
 ﻿using FSUIPC;
 using Serilog;
+using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Windows.Forms.VisualStyles;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -13,6 +15,7 @@ namespace PilotsDeck_FNX2PLD
         private bool firstUpdate = true;
 
         private double lastSwitchVS;
+        private int lastValueVS = 0;
         private bool isAltVs = false;
         private double lastSwitchAlt;
 
@@ -29,6 +32,7 @@ namespace PilotsDeck_FNX2PLD
                 { "XPDR", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80") },
                 { "BAT2", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00") },
+                { "BAT2_2", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00 00 00") },
                 { "RUDDER1", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "RUDDER2", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) }
             };
@@ -43,28 +47,52 @@ namespace PilotsDeck_FNX2PLD
 
 
             //ISIS
-            AddOffset(Patterns["ISIS"], "isisStd", -0x67, 1, "bool", 0);
-            nextOffset = AddOffset(Patterns["ISIS"], "isisBaro", -0x8C, 8, "double", 5, nextOffset);
+            AddOffset(Patterns["ISIS"], "isisStd", -0xC7, 1, "bool", 0);
+            nextOffset = AddOffset(Patterns["ISIS"], "isisBaro", -0xEC, 8, "double", 6, nextOffset);
 
-            //COM
+            //COM standby
             nextOffset = AddOffset(Patterns["COM"], "comStandby", -0xC, 4, "int", 8, nextOffset);
 
             //XPDR
             AddOffset(Patterns["XPDR"], "xpdrDisplay", -0x110, 2, "int");
             nextOffset = AddOffset(Patterns["XPDR"], "xpdrInput", -0x10C, 2, "int", 5, nextOffset);
+            AddOffset(Patterns["XPDR"], "xpdrInput2", -0x124, 2, "int");
 
             //BAT1
             nextOffset = AddOffset(Patterns["BAT1"], "bat1Display", -0x2C, 8, "double", 5, nextOffset);
 
             //BAT2
             nextOffset = AddOffset(Patterns["BAT2"], "bat2Display", +0x444, 8, "double", 5, nextOffset);
+            AddOffset(Patterns["BAT2_2"], "bat2Display2", -0x354, 8, "double");
 
             //RUDDER
-            nextOffset = AddOffset(Patterns["RUDDER1"], "rudderDisplay1", -0xEC, 8, "double", 6, nextOffset);
-            AddOffset(Patterns["RUDDER2"], "rudderDisplay2", -0xEC, 8, "double");
+            nextOffset = AddOffset(Patterns["RUDDER1"], "rudderDisplay1", 0x8C, 8, "double", 6, nextOffset);
+            AddOffset(Patterns["RUDDER2"], "rudderDisplay2", 0x8C, 8, "double");
 
             //VS Selected
-            IPCOffsets.Add("isAltVs", new Offset<string>(Program.groupName, nextOffset, 1, true));
+            IPCOffsets.Add("isAltVs", new Offset<string>(Program.groupName, nextOffset, 2, true));
+            Log.Information($"ElementManager: Offset for <isAltVs> is at 0x{nextOffset:X}:{2}:s");
+            nextOffset += 2;
+
+            //COM active
+            nextOffset = AddOffset(Patterns["COM"], "comActive", -0x24, 4, "int", 8, nextOffset);
+
+            //FC
+        }
+
+        public void Dispose()
+        {
+            foreach (var offset in IPCOffsets.Values)
+            {
+                offset.Disconnect();
+            }
+            IPCOffsets.Clear();
+
+            foreach (var pattern in Patterns.Values)
+            {
+                pattern.Dispose();
+            }
+            Patterns.Clear();
         }
 
         private int AddOffset(MemoryPattern pattern, string id, long memOffset, int memSize, string type, int ipcSize = 0, int nextOffset = 0)
@@ -110,7 +138,8 @@ namespace PilotsDeck_FNX2PLD
             lastSwitchVS = switchVS;
 
             double switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
-            if (switchAlt > lastSwitchAlt)
+            
+            if (switchAlt != lastSwitchAlt)
                 isAltVs = false;
             lastSwitchAlt = switchAlt;
 
@@ -224,7 +253,7 @@ namespace PilotsDeck_FNX2PLD
                     else
                         vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
 
-                    if (!isAltVs && vs == 0)
+                    if (!isAltVs)
                         result += "-----";
                     else if (isModeHdgVs)
                     {
@@ -241,6 +270,7 @@ namespace PilotsDeck_FNX2PLD
 
                         result += fpa.ToString("F1", formatInfo);
                     }
+                    lastValueVS = vs;
                 }
             }
             IPCOffsets["fcuVsDisplay"].Value = result;
@@ -252,7 +282,21 @@ namespace PilotsDeck_FNX2PLD
             if (isis.MemoryOffsets["isisStd"].GetValue() == true)
                 result = "STD";
             else
-                result = isis.MemoryOffsets["isisBaro"].GetValue()?.ToString() ?? "";
+            {
+                bool isHpa = IPCManager.ReadLVar("S_FCU_EFIS1_BARO_MODE") == 1;
+                if (isHpa)
+                {
+                    double tmp = isis.MemoryOffsets["isisBaro"].GetValue() ?? 0.0;
+                    tmp = Math.Round(tmp, 0);
+                    result = string.Format("{0,4:0000}", tmp);
+                }
+                else
+                {
+                    double tmp = isis.MemoryOffsets["isisBaro"].GetValue() ?? 0.0;
+                    tmp = Math.Round(tmp * 0.029529983071445, 2);
+                    result = string.Format(CultureInfo.InvariantCulture.NumberFormat, "{0:F2}", tmp);
+                }
+            }
 
             IPCOffsets["isisBaro"].Value = result;
         }
@@ -264,21 +308,39 @@ namespace PilotsDeck_FNX2PLD
                 IPCOffsets["comStandby"].Value = value.ToString();
             else
                 IPCOffsets["comStandby"].Value = "";
+
+            value = com.MemoryOffsets["comActive"].GetValue() ?? 0;
+            if (value > 0)
+                IPCOffsets["comActive"].Value = value.ToString();
+            else
+                IPCOffsets["comActive"].Value = "";
         }
 
         private void UpdateXpdr()
         {
-            int value = Patterns["XPDR"].MemoryOffsets["xpdrInput"].GetValue() ?? 0;
-            if (value > 0)
-                IPCOffsets["xpdrInput"].Value = value.ToString();
+            int value = Patterns["XPDR"].MemoryOffsets["xpdrDisplay"].GetValue() ?? 0;
+            if (value != 0)
+            {
+                value = Patterns["XPDR"].MemoryOffsets["xpdrInput"].GetValue() ?? 0;
+                if (value > 0)
+                    IPCOffsets["xpdrInput"].Value = value.ToString();
+                else
+                {
+                    value = Patterns["XPDR"].MemoryOffsets["xpdrDisplay"].GetValue() ?? 0;
+                    if (value > 0)
+                        IPCOffsets["xpdrInput"].Value = value.ToString();
+                    else
+                        IPCOffsets["xpdrInput"].Value = "";
+
+                }
+            }
             else
             {
-                value = Patterns["XPDR"].MemoryOffsets["xpdrDisplay"].GetValue() ?? 0;
+                value = Patterns["XPDR"].MemoryOffsets["xpdrInput2"].GetValue() ?? 0;
                 if (value > 0)
                     IPCOffsets["xpdrInput"].Value = value.ToString();
                 else
                     IPCOffsets["xpdrInput"].Value = "";
-
             }
         }
 
@@ -288,7 +350,13 @@ namespace PilotsDeck_FNX2PLD
             IPCOffsets["bat1Display"].Value = string.Format(formatInfo, "{0:F1}", value);
 
             value = Patterns["BAT2"].MemoryOffsets["bat2Display"].GetValue() ?? 0.0;
-            IPCOffsets["bat2Display"].Value = string.Format(formatInfo, "{0:F1}", value);
+            if (value != 0)
+                IPCOffsets["bat2Display"].Value = string.Format(formatInfo, "{0:F1}", value);
+            else
+            {
+                value = Patterns["BAT2_2"].MemoryOffsets["bat2Display2"].GetValue() ?? 0.0;
+                IPCOffsets["bat2Display"].Value = string.Format(formatInfo, "{0:F1}", value);
+            }
         }
 
         private void UpdateRudder()
@@ -297,6 +365,7 @@ namespace PilotsDeck_FNX2PLD
             if (value == 0.0)
                 value = Patterns["RUDDER2"].MemoryOffsets["rudderDisplay2"].GetValue() ?? 0.0;
             
+            value = Math.Round(value, 2);
             string result;
             if (value <= -0.1)
                 result = "L ";

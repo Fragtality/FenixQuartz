@@ -49,6 +49,7 @@ namespace PilotsDeck_FNX2PLD
         public static readonly int ChunkSize = 1024 * 1024;
 
         private int procHandle = 0;
+        private Process process;
         private SYSTEM_INFO sysInfo;
 
         public MemoryScanner(Process proc)
@@ -57,11 +58,17 @@ namespace PilotsDeck_FNX2PLD
             GetSystemInfo(out sysInfo);
 
             procHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, proc.Id);
+            process = proc;
         }
 
         public bool IsInitialized()
         {
             return procHandle != 0;
+        }
+
+        public bool FenixIsRunning()
+        {
+            return process != null && !process.HasExited;
         }
 
         public void SearchPatterns(List<MemoryPattern> patterns)
@@ -162,10 +169,13 @@ namespace PilotsDeck_FNX2PLD
             return baseAddr;
         }
 
-        public void UpdateBuffers(Dictionary<string, MemoryPattern> patterns)
+        public bool UpdateBuffers(Dictionary<string, MemoryPattern> patterns)
         {
             int bytesRead = 0;
             byte[] memBuff;
+
+            if (!FenixIsRunning())
+                return false;
 
             foreach (var pattern in patterns)
             {
@@ -179,6 +189,8 @@ namespace PilotsDeck_FNX2PLD
                         offset.UpdateBuffer(memBuff);
                 }
             }
+
+            return true;
         }
     }
 }

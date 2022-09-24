@@ -5,6 +5,8 @@ namespace PilotsDeck_FNX2PLD
 {
     public static class IPCManager
     {
+        public static string currentAirString = "";
+
         public static void WaitForConnection()
         {
             bool first = true;
@@ -72,24 +74,37 @@ namespace PilotsDeck_FNX2PLD
             return result;
         }
 
-        public static bool GetCurrentAircraft()
+        public static bool IsAircraftFenix()
+        {
+            return currentAirString.Contains("fnx320");
+        }
+
+        public static bool RefreshCurrentAircraft()
         {
             Log.Logger.Information("IPCManager: Read Current Aircraft");
 
-
+            string airString = "none";
             if (OpenSafeFSUIPC())
             {
                 Offset airOffset = new Offset(0x3C00, 256);
-                FSUIPCConnection.Process();
-                string airString = airOffset.GetValue<string>();
+                try
+                {
+                    FSUIPCConnection.Process();
+                }
+                catch
+                {
+                    return false;
+                }
+                airString = airOffset.GetValue<string>();
 
                 if (airString != null && airString.Length > 0)
                 {
-                    if (!airString.Contains("fnx320"))
+                    if (!airString.Contains("fnx320") && !Program.ignoreCurrentAC)
                     {
                         Log.Logger.Warning("IPCManager: Current Aircraft is not a Fenix 320!");
                         return false;
                     }
+                    currentAirString = airString;
                 }
                 else
                 {
@@ -103,7 +118,7 @@ namespace PilotsDeck_FNX2PLD
                 return false;
             }
 
-            Log.Logger.Information($"IPCManager: FSUIPC connected, Fenix A320 is loaded.");
+            Log.Logger.Information($"IPCManager: FSUIPC connected, Aircraft loaded: {airString}");
             return true;
         }
     }

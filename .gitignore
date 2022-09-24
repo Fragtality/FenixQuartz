@@ -6,7 +6,7 @@
 # CUSTOM
 Releases/
 *CopyToMSFS.ps1
-
+desktop.ini
 
 # User-specific files
 *.rsuser

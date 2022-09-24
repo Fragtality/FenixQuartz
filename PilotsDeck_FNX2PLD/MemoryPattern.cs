@@ -18,6 +18,12 @@
             MatchNumber = match;
         }
 
+        public void Dispose()
+        {
+            MemoryOffsets.Clear();
+            BytePattern = null;
+        }
+
         public static byte[] ConvertPattern(string patternStr)
         {
             List<byte> pattern = new();
