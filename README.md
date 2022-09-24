@@ -4,7 +4,7 @@ To make one Thing directly clear: it is a **HACK**. Literally: It accesses the P
 
 # Installation
 Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc).<br/>
-You need at least FSUIP7 Version 7.3.9 (currently in Beta, tested with 7.3.9h)!<br/>
+You need at least FSUIPC7 Version **7.3.9** (currently in Beta, tested with 7.3.9h)!<br/>
 
 It is designed to be started by FSUIPC - add this to your ini File:
 ```
