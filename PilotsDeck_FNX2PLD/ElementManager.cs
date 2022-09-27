@@ -247,13 +247,20 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "FPA\n";
 
-                    int vs = 0;
+                    //int vs = 0;
+                    //if (isAltVs)
+                    //    vs = fcu.MemoryOffsets["fcuVsFma"].GetValue() ?? 0;
+                    //else
+                    //    vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
+
+                    //if (!isAltVs)
+                    //    result += "-----";
+                    int vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
+                    bool sourceIsDisplay = vs != 0;
                     if (isAltVs)
                         vs = fcu.MemoryOffsets["fcuVsFma"].GetValue() ?? 0;
-                    else
-                        vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
 
-                    if (!isAltVs)
+                    if (!isAltVs && vs == 0)
                         result += "-----";
                     else if (isModeHdgVs)
                     {

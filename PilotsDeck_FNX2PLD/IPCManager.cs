@@ -1,5 +1,6 @@
 ﻿using FSUIPC;
 using Serilog;
+using System.Diagnostics;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -72,6 +73,12 @@ namespace PilotsDeck_FNX2PLD
                 result = MSFSVariableServices.LVars[name].Value;
 
             return result;
+        }
+
+        public static bool IsSimOpen()
+        {
+            Process? msfs = Process.GetProcessesByName("FlightSimulator").FirstOrDefault(); 
+            return msfs != null;
         }
 
         public static bool IsAircraftFenix()

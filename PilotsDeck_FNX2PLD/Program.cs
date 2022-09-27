@@ -63,6 +63,11 @@ namespace PilotsDeck_FNX2PLD
                         Log.Logger.Error($"Program: FSUIPC Connection is closed - exiting.");
                         break;
                     }
+                    else if (!IPCManager.IsSimOpen())
+                    {
+                        Log.Logger.Error($"Program: Simulator has closed - exiting.");
+                        break;
+                    }
                     else if (!IPCManager.IsAircraftFenix() && !ignoreCurrentAC)
                     {
                         Log.Logger.Warning($"Program: Loaded Aircraft is not a Fenix - exiting.");
@@ -137,14 +142,17 @@ namespace PilotsDeck_FNX2PLD
                         Log.Information($"Program: Wating for until Fenix is the loaded Aircraft and Sim is unpaused, sleeping for {waitTick * 4}s");
                         Thread.Sleep(waitTick * 1000 * 4);
                     }
-                    if (!FSUIPCConnection.IsOpen)
+                    if (!IPCManager.IsSimOpen())
+                    {
+                        Log.Information($"Sim has closed while waiting for Aircraft / unpaused");
                         return false;
+                    }
                 }
                 while (!IPCManager.IsAircraftFenix() || isMenu.Value == 1 || isPaused.Value == 1);
 
                 //Wait until the Fenix Executable is running
                 Process? fenixProc = null;
-                while (fenixProc == null && FSUIPCConnection.IsOpen)
+                while (fenixProc == null)
                 {
                     fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
                     if (fenixProc != null)
@@ -152,8 +160,24 @@ namespace PilotsDeck_FNX2PLD
                     else
                     {
                         startDirect = false;
-                        Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick * 2}s");
-                        Thread.Sleep(waitTick * 1000 * 2);
+                        if (FSUIPCConnection.IsOpen)
+                        {
+                            if (IPCManager.IsSimOpen())
+                            {
+                                Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick * 2}s");
+                                Thread.Sleep(waitTick * 1000 * 2);
+                            }
+                            else
+                            {
+                                Log.Information($"Sim has closed while waiting for Process");
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            Log.Error($"Program: FSUIPC Closed while waiting on Fenix Process - exiting!");
+                            return false;
+                        }
                     }
                 }
 
@@ -172,8 +196,9 @@ namespace PilotsDeck_FNX2PLD
 
                 //Start WASM and ElementManager
                 Log.Information($"Program: Initializing WASM Module");
-                MSFSVariableServices.Init(Process.GetCurrentProcess().MainWindowHandle);
+                MSFSVariableServices.Init();
                 MSFSVariableServices.LVARUpdateFrequency = 0;
+                MSFSVariableServices.LogLevel = LOGLEVEL.LOG_LEVEL_INFO;
                 MSFSVariableServices.Start();
                 if (!MSFSVariableServices.IsRunning)
                 {
