@@ -21,11 +21,8 @@ namespace PilotsDeck_FNX2PLD
         public static readonly int waitTick = Convert.ToInt32(ConfigurationManager.AppSettings["waitTick"]);
         public static readonly string groupName = "FNX2PLD";
 
-        private static MemoryScanner scanner;
-        private static ElementManager elementManager;
-
-        private static Offset<byte> isMenu;
-        private static Offset<Int16> isPaused;
+        private static MemoryScanner? scanner = null;
+        private static ElementManager? elementManager = null;
 
         public static void Main()
         {
@@ -136,19 +133,20 @@ namespace PilotsDeck_FNX2PLD
                 //Wait until Fenix is the current Aircraft for FSUIPC
                 do
                 {
-                    if (!IPCManager.RefreshCurrentAircraft())
+                    IPCManager.RefreshCurrentAircraft();
+                    if (!IPCManager.IsAircraftFenix())
                     {
                         startDirect = false;
-                        Log.Information($"Program: Wating for until Fenix is the loaded Aircraft and Sim is unpaused, sleeping for {waitTick * 4}s");
+                        Log.Information($"Program: Wating for until Fenix is the loaded Aircraft, sleeping for {waitTick * 4}s");
                         Thread.Sleep(waitTick * 1000 * 4);
                     }
                     if (!IPCManager.IsSimOpen())
                     {
-                        Log.Information($"Sim has closed while waiting for Aircraft / unpaused");
+                        Log.Information($"Sim has closed while waiting for Aircraft");
                         return false;
                     }
                 }
-                while (!IPCManager.IsAircraftFenix() || isMenu.Value == 1 || isPaused.Value == 1);
+                while (!IPCManager.IsAircraftFenix());
 
                 //Wait until the Fenix Executable is running
                 Process? fenixProc = null;
@@ -164,8 +162,17 @@ namespace PilotsDeck_FNX2PLD
                         {
                             if (IPCManager.IsSimOpen())
                             {
-                                Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick * 2}s");
-                                Thread.Sleep(waitTick * 1000 * 2);
+                                IPCManager.RefreshCurrentAircraft();
+                                if (IPCManager.IsAircraftFenix())
+                                {
+                                    Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick * 2}s");
+                                    Thread.Sleep(waitTick * 1000 * 2);
+                                }
+                                else
+                                {
+                                    Log.Warning($"Program: Aircraft changed!");
+                                    return false;
+                                }
                             }
                             else
                             {
@@ -238,9 +245,6 @@ namespace PilotsDeck_FNX2PLD
                 if (!IPCManager.OpenSafeFSUIPC())
                     return false;
             }
-
-            isMenu = new(0x3365);
-            isPaused = new(0x0262);
             
             return true;
         }

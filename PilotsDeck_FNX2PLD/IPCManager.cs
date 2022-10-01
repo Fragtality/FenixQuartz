@@ -7,6 +7,7 @@ namespace PilotsDeck_FNX2PLD
     public static class IPCManager
     {
         public static string currentAirString = "";
+        public static Offset airOffset = new Offset(Program.groupName, 0x3C00, 256);
 
         public static void WaitForConnection()
         {
@@ -93,13 +94,13 @@ namespace PilotsDeck_FNX2PLD
             string airString = "none";
             if (OpenSafeFSUIPC())
             {
-                Offset airOffset = new Offset(0x3C00, 256);
                 try
                 {
-                    FSUIPCConnection.Process();
+                    FSUIPCConnection.Process(Program.groupName);
                 }
                 catch
                 {
+                    Log.Logger.Error("IPCManager: Exception during Process");
                     return false;
                 }
                 airString = airOffset.GetValue<string>();

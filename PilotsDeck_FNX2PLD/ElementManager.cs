@@ -28,7 +28,8 @@ namespace PilotsDeck_FNX2PLD
             {
                 { "FCU", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "ISIS", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                { "COM", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF FF FF FF FF") },
+                { "COM_1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
+                //{ "COM_2", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 2) },
                 { "XPDR", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80") },
                 { "BAT2", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00") },
@@ -51,7 +52,8 @@ namespace PilotsDeck_FNX2PLD
             nextOffset = AddOffset(Patterns["ISIS"], "isisBaro", -0xEC, 8, "double", 6, nextOffset);
 
             //COM standby
-            nextOffset = AddOffset(Patterns["COM"], "comStandby", -0xC, 4, "int", 8, nextOffset);
+            nextOffset = AddOffset(Patterns["COM_1"], "comStandby", -0xC, 4, "int", 8, nextOffset);
+            //AddOffset(Patterns["COM_2"], "comStandby", -0xC, 4, "int");
 
             //XPDR
             AddOffset(Patterns["XPDR"], "xpdrDisplay", -0x110, 2, "int");
@@ -75,9 +77,8 @@ namespace PilotsDeck_FNX2PLD
             nextOffset += 2;
 
             //COM active
-            nextOffset = AddOffset(Patterns["COM"], "comActive", -0x24, 4, "int", 8, nextOffset);
-
-            //FC
+            nextOffset = AddOffset(Patterns["COM_1"], "comActive", -0x24, 4, "int", 8, nextOffset);
+            //AddOffset(Patterns["COM_2"], "comActive", -0x24, 4, "int");
         }
 
         public void Dispose()
@@ -122,7 +123,7 @@ namespace PilotsDeck_FNX2PLD
             UpdateFMA();
             UpdateFCU(Patterns["FCU"], isLightTest);
             UpdateISIS(Patterns["ISIS"]);
-            UpdateCom(Patterns["COM"]);
+            UpdateCom();
             UpdateXpdr();
             UpdateBatteries();
             UpdateRudder();
@@ -247,16 +248,7 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "FPA\n";
 
-                    //int vs = 0;
-                    //if (isAltVs)
-                    //    vs = fcu.MemoryOffsets["fcuVsFma"].GetValue() ?? 0;
-                    //else
-                    //    vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
-
-                    //if (!isAltVs)
-                    //    result += "-----";
                     int vs = fcu.MemoryOffsets["fcuVsDisplay"].GetValue() ?? 0;
-                    bool sourceIsDisplay = vs != 0;
                     if (isAltVs)
                         vs = fcu.MemoryOffsets["fcuVsFma"].GetValue() ?? 0;
 
@@ -308,17 +300,18 @@ namespace PilotsDeck_FNX2PLD
             IPCOffsets["isisBaro"].Value = result;
         }
 
-        private void UpdateCom(MemoryPattern com)
+        private void UpdateCom()
         {
-            int value = com.MemoryOffsets["comStandby"].GetValue() ?? 0;
-            if (value > 0)
-                IPCOffsets["comStandby"].Value = value.ToString();
+            int valueStandby = Patterns["COM_1"].MemoryOffsets["comStandby"].GetValue() ?? 0;
+            int valueActive = Patterns["COM_1"].MemoryOffsets["comActive"].GetValue() ?? 0;
+
+            if (valueStandby > 0)
+                IPCOffsets["comStandby"].Value = valueStandby.ToString();
             else
                 IPCOffsets["comStandby"].Value = "";
 
-            value = com.MemoryOffsets["comActive"].GetValue() ?? 0;
-            if (value > 0)
-                IPCOffsets["comActive"].Value = value.ToString();
+            if (valueActive > 0)
+                IPCOffsets["comActive"].Value = valueActive.ToString();
             else
                 IPCOffsets["comActive"].Value = "";
         }
