@@ -1,19 +1,24 @@
-﻿using System.Text;
+﻿using Serilog;
+using System.Text;
 
 namespace PilotsDeck_FNX2PLD
 {
-    public class MemoryOffset
+    public class MemoryValue : IDisposable
     {
-        public long AddressOffset { get; set; }
+        public string ID { get; set; } = "";
+        public MemoryPattern Pattern { get; set; }
+        public long PatternOffset { get; set; }    
         public int Size { get; set; }
         public string TypeName { get; set; } = "int";
         public bool CastInteger { get; set; } = false;
 
         private byte[]? valueBuffer = null;
 
-        public MemoryOffset(long addressOffset, int size, string typeName, bool castInteger = false)
+        public MemoryValue(string id, MemoryPattern pattern, long patternOffset, int size, string typeName, bool castInteger = false)
         {
-            AddressOffset = addressOffset;
+            ID = id;
+            Pattern = pattern;
+            PatternOffset = patternOffset;
             Size = size;
             TypeName = typeName;
             CastInteger = castInteger;
@@ -22,7 +27,10 @@ namespace PilotsDeck_FNX2PLD
 
         public void UpdateBuffer(byte[] memBuffer)
         {
-            Array.Copy(memBuffer, valueBuffer, memBuffer.Length);
+            if (valueBuffer != null)
+                Array.Copy(memBuffer, valueBuffer, memBuffer.Length);
+            else
+                Log.Logger.Error($"MemoryOffset: Error in UpdateBuffer() - valueBuffer is null");
         }
 
         public virtual dynamic? GetValue()
@@ -54,6 +62,11 @@ namespace PilotsDeck_FNX2PLD
             }
 
             return null;
+        }
+
+        public void Dispose()
+        {
+            valueBuffer = null;
         }
     }
 }

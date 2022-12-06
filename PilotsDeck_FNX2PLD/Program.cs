@@ -2,9 +2,6 @@
 using Serilog;
 using System.Configuration;
 using System.Diagnostics;
-using System.DirectoryServices.ActiveDirectory;
-using System.Threading;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -14,15 +11,16 @@ namespace PilotsDeck_FNX2PLD
         public static readonly string logFilePath = Convert.ToString(ConfigurationManager.AppSettings["logFilePath"]) ?? "FNX2PLD.log";
         public static readonly string logLevel = Convert.ToString(ConfigurationManager.AppSettings["logLevel"]) ?? "Debug";
         public static readonly bool waitForConnect = Convert.ToBoolean(ConfigurationManager.AppSettings["waitForConnect"]);
-        public static readonly bool ignoreCurrentAC = Convert.ToBoolean(ConfigurationManager.AppSettings["ignoreCurrentAC"]);
         public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
+        public static readonly bool rawValues = Convert.ToBoolean(ConfigurationManager.AppSettings["rawValues"]);
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
-        public static readonly int waitReady = Convert.ToInt32(ConfigurationManager.AppSettings["waitReady"]);
-        public static readonly int waitTick = Convert.ToInt32(ConfigurationManager.AppSettings["waitTick"]);
         public static readonly string groupName = "FNX2PLD";
 
         private static MemoryScanner? scanner = null;
         private static ElementManager? elementManager = null;
+        private static bool cancelRequested = false;
+        private static CancellationToken cancellationToken;
+        private static bool wasmInitialized = false;
 
         public static void Main()
         {
@@ -38,46 +36,31 @@ namespace PilotsDeck_FNX2PLD
 
             try
             {
-                //Init Prog, Open Process/FSUIPC, Wait for Connect
-                if (!Initialize())
-                    return;
+                CancellationTokenSource cancellationTokenSource = new();
+                cancellationToken = cancellationTokenSource.Token;
 
-                CancellationToken cancellationToken = new CancellationToken();
-
-                while (!cancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested && !cancelRequested)
                 {
-                    if (Wait())
+                    if (Wait() && InitializeSession())
                     {
-                        MainLoop(cancellationToken);
-                        if (FSUIPCConnection.IsOpen)
-                        {
-                            Log.Logger.Information($"Program: Resetting Session (MainLoop stopped and FSUIPC Connected)");
-                            Reset();
-                        }
-                    }
-                    else if (!FSUIPCConnection.IsOpen)
-                    {
-                        Log.Logger.Error($"Program: FSUIPC Connection is closed - exiting.");
-                        break;
-                    }
-                    else if (!IPCManager.IsSimOpen())
-                    {
-                        Log.Logger.Error($"Program: Simulator has closed - exiting.");
-                        break;
-                    }
-                    else if (!IPCManager.IsAircraftFenix() && !ignoreCurrentAC)
-                    {
-                        Log.Logger.Warning($"Program: Loaded Aircraft is not a Fenix - exiting.");
-                        break;
+                        MainLoop();
                     }
                     else
                     {
-                        Log.Logger.Information($"Program: Resetting Session (WaitLoop failed)");
-                        Reset();
-                        Log.Information($"Program: Waiting {waitTick}s");
-                        Thread.Sleep(waitTick * 1000);
+                        if (!RetryPossible())
+                        {
+                            cancelRequested = true;
+                            Log.Logger.Error($"Program: Session aborted, Retry not possible - exiting Program");
+                        }
+                        else
+                        {
+                            Reset();
+                            Log.Logger.Information($"Program: Session aborted, Retry possible - Waiting for new Session");
+                        }
                     }
                 }
+
+                Close();
                 
             }
             catch (Exception ex)
@@ -86,167 +69,29 @@ namespace PilotsDeck_FNX2PLD
             }
         }
 
-        private static void MainLoop(CancellationToken cancellationToken)
-        {
-            //Main Loop
-            Stopwatch watch = new Stopwatch();
-            int measures = 0;
-            int averageTick = 150;
-
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    watch.Start();
-
-                    if (!scanner.UpdateBuffers(elementManager.Patterns))
-                    {
-                        Log.Logger.Error($"Program: UpdateBuffers() failed - Exiting");
-                        break;
-                    }
-                    elementManager.GenerateValues();
-
-                    watch.Stop();
-                    measures++;
-                    if (measures > averageTick)
-                    {
-                        Log.Logger.Debug($"Program: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / averageTick)}ms --------------------------------");
-                        measures = 0;
-                        watch.Reset();
-                    }
-
-                    Thread.Sleep(updateIntervall);
-                }
-            }
-            catch
-            {
-                Log.Logger.Error($"Program: Critical Exception during MainLoop()");
-            }
-        }
-
         private static bool Wait()
         {
-            bool startDirect = true;
+            if (!IPCManager.WaitForSimulator(cancellationToken))
+                return false;
 
-            try
-            {
-                //Wait until Fenix is the current Aircraft for FSUIPC
-                do
-                {
-                    IPCManager.RefreshCurrentAircraft();
-                    if (!IPCManager.IsAircraftFenix())
-                    {
-                        startDirect = false;
-                        Log.Information($"Program: Wating for until Fenix is the loaded Aircraft, sleeping for {waitTick * 4}s");
-                        Thread.Sleep(waitTick * 1000 * 4);
-                    }
-                    if (!IPCManager.IsSimOpen())
-                    {
-                        Log.Information($"Sim has closed while waiting for Aircraft");
-                        return false;
-                    }
-                }
-                while (!IPCManager.IsAircraftFenix());
+            if (!IPCManager.WaitForConnection(cancellationToken))
+                return false;
 
-                //Wait until the Fenix Executable is running
-                Process? fenixProc = null;
-                while (fenixProc == null)
-                {
-                    fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
-                    if (fenixProc != null)
-                        scanner = new MemoryScanner(fenixProc);
-                    else
-                    {
-                        startDirect = false;
-                        if (FSUIPCConnection.IsOpen)
-                        {
-                            if (IPCManager.IsSimOpen())
-                            {
-                                IPCManager.RefreshCurrentAircraft();
-                                if (IPCManager.IsAircraftFenix())
-                                {
-                                    Log.Warning($"Program: Could not find Process {FenixExecutable}, trying again in {waitTick * 2}s");
-                                    Thread.Sleep(waitTick * 1000 * 2);
-                                }
-                                else
-                                {
-                                    Log.Warning($"Program: Aircraft changed!");
-                                    return false;
-                                }
-                            }
-                            else
-                            {
-                                Log.Information($"Sim has closed while waiting for Process");
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            Log.Error($"Program: FSUIPC Closed while waiting on Fenix Process - exiting!");
-                            return false;
-                        }
-                    }
-                }
+            if (!IPCManager.WaitForFenixAircraft(cancellationToken))
+                return false;
 
-                //Delay Scanner Initialization until User clicked "Ready to Fly"
-                if (!startDirect)
-                {
-                    Log.Information($"Program: Waiting for User to click Ready to Fly, sleeping {waitReady}s");
-                    Thread.Sleep(waitReady * 1000);
-                }
+            if (!IPCManager.WaitForFenixBinary(cancellationToken))
+                return false;
 
-                if (!scanner.IsInitialized())
-                {
-                    Log.Error($"Program: Could not open Process {FenixExecutable}!");
-                    return false;
-                }
+            if (!IPCManager.WaitForSessionReady(cancellationToken))
+                return false;
 
-                //Start WASM and ElementManager
-                Log.Information($"Program: Initializing WASM Module");
-                MSFSVariableServices.Init();
-                MSFSVariableServices.LVARUpdateFrequency = 0;
-                MSFSVariableServices.LogLevel = LOGLEVEL.LOG_LEVEL_INFO;
-                MSFSVariableServices.Start();
-                if (!MSFSVariableServices.IsRunning)
-                {
-                    Log.Error($"Program: WASM Module is not running! Closing ...");
-                    return false;
-                }
-
-                elementManager = new ElementManager();
-
-                //Search Memory Locations for Patterns
-                scanner.SearchPatterns(elementManager.Patterns.Values.ToList());
-
-                foreach (var pattern in elementManager.Patterns)
-                {
-                    if (pattern.Value.Location != 0)
-                        Log.Information($"Program: Pattern <{pattern.Key}> is at Address 0x{pattern.Value.Location:X} ({pattern.Value.Location:d})");
-                    else
-                        Log.Error($"Program: Location for Pattern <{pattern.Key}> not found!");
-                }
-
-                return true;
-            }
-            catch
-            {
-                Log.Logger.Error($"Program: Critical Exception during Wait()");
-            }
-
-            return false;
+            return true;
         }
 
-        private static bool Initialize()
+        private static bool RetryPossible()
         {
-            if (!FSUIPCConnection.IsOpen && waitForConnect)
-                IPCManager.WaitForConnection();
-            else
-            {
-                if (!IPCManager.OpenSafeFSUIPC())
-                    return false;
-            }
-            
-            return true;
+            return IPCManager.IsSimRunning() && FSUIPCConnection.IsOpen;
         }
 
         private static void Reset()
@@ -257,14 +102,108 @@ namespace PilotsDeck_FNX2PLD
                 if (elementManager != null)
                     elementManager.Dispose();
                 elementManager = null;
-                if (FSUIPCConnection.IsOpen)
-                    FSUIPCConnection.Close();
-                if (MSFSVariableServices.IsRunning)
-                    MSFSVariableServices.Stop();
             }
             catch
             {
                 Log.Logger.Error($"Program: Exception during Reset()");
+            }
+        }
+
+        private static void Close()
+        {
+            Reset();
+            IPCManager.CloseSafe();
+        }
+
+        private static bool InitializeSession()
+        {
+            try
+            {
+                Process? fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
+                if (fenixProc != null)
+                {
+                    scanner = new MemoryScanner(fenixProc);
+                }
+                else
+                {
+                    Log.Logger.Error($"InitializeSession: Fenix Process is null!");
+                    return false;
+                }
+
+                if (!InitWASM())
+                {
+                    Log.Logger.Error($"InitializeSession: Intialization of WASM failed!");
+                    return false;
+                }
+
+                elementManager = new ElementManager();
+                scanner.SearchPatterns(elementManager.MemoryPatterns.Values.ToList());
+
+                return true;
+            }
+            catch
+            {
+                Log.Logger.Error($"InitializeSession: Exception during Intialization!");
+                return false;
+            }
+        }
+
+        private static bool InitWASM()
+        {
+            if (!wasmInitialized)
+            {
+                IPCManager.InitWASM();
+                wasmInitialized = true;
+            }
+            else
+            {
+                MSFSVariableServices.Start();
+            }
+
+            return MSFSVariableServices.IsRunning;
+        }
+
+        private static void MainLoop()
+        {
+            if (scanner == null || elementManager == null)
+                throw new ArgumentException("MainLoop: MemoryScanner or ElementManager are null!");
+
+            elementManager.PrintReport();
+            //Main Loop
+            Stopwatch watch = new Stopwatch();
+            int measures = 0;
+            int averageTick = 150;
+
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested && IPCManager.IsProcessRunning(FenixExecutable))
+                {
+                    watch.Start();
+
+                    if (!scanner.UpdateBuffers(elementManager.MemoryValues))
+                    {
+                        Log.Logger.Error($"MainLoop: UpdateBuffers() failed - Exiting");
+                        break;
+                    }
+                    elementManager.GenerateValues();
+
+                    watch.Stop();
+                    measures++;
+                    if (measures > averageTick)
+                    {
+                        Log.Logger.Debug($"MainLoop: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / averageTick)}ms --------------------------------");
+                        measures = 0;
+                        watch.Reset();
+                    }
+
+                    Thread.Sleep(updateIntervall);
+                }
+
+                Log.Logger.Information($"Program: MainLoop ended");
+            }
+            catch
+            {
+                Log.Logger.Error($"Program: Critical Exception during MainLoop()");
             }
         }
     }

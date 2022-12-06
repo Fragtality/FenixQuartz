@@ -169,7 +169,7 @@ namespace PilotsDeck_FNX2PLD
             return baseAddr;
         }
 
-        public bool UpdateBuffers(Dictionary<string, MemoryPattern> patterns)
+        public bool UpdateBuffers(Dictionary<string, MemoryValue> memValues)
         {
             int bytesRead = 0;
             byte[] memBuff;
@@ -177,17 +177,14 @@ namespace PilotsDeck_FNX2PLD
             if (!FenixIsRunning())
                 return false;
 
-            foreach (var pattern in patterns)
+            foreach (var memValue in memValues.Values)
             {
-                if (pattern.Value.Location == 0)
+                if (memValue.Pattern.Location == 0)
                     continue;
 
-                foreach (var offset in pattern.Value.MemoryOffsets.Values)
-                {
-                    memBuff = new byte[offset.Size];
-                    if (ReadProcessMemory(procHandle, CalculateLocation(pattern.Value.Location, offset.AddressOffset), memBuff, offset.Size, ref bytesRead))
-                        offset.UpdateBuffer(memBuff);
-                }
+                memBuff = new byte[memValue.Size];
+                if (ReadProcessMemory(procHandle, CalculateLocation(memValue.Pattern.Location, memValue.PatternOffset), memBuff, memValue.Size, ref bytesRead))
+                    memValue.UpdateBuffer(memBuff);
             }
 
             return true;

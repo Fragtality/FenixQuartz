@@ -4,7 +4,6 @@
     {
         public byte[] BytePattern { get; set; }
         public ulong Location { get; set; } = 0;
-        public Dictionary<string, MemoryOffset> MemoryOffsets { get; set; } = new();
         public int MatchNumber { get; set; } = 1;
 
         public MemoryPattern(string pattern)
@@ -16,12 +15,6 @@
         {
             BytePattern = ConvertPattern(pattern);
             MatchNumber = match;
-        }
-
-        public void Dispose()
-        {
-            MemoryOffsets.Clear();
-            BytePattern = null;
         }
 
         public static byte[] ConvertPattern(string patternStr)
