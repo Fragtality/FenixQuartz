@@ -32,6 +32,7 @@ namespace PilotsDeck_FNX2PLD
             else
                 loggerConfiguration.MinimumLevel.Information();
             Log.Logger = loggerConfiguration.CreateLogger();
+            Log.Information($"-----------------------------------------------------------------------");
             Log.Information($"Program: FNX2PLD started! Log Level: {logLevel} Log File: {logFilePath}");
 
             try
@@ -67,6 +68,8 @@ namespace PilotsDeck_FNX2PLD
             {
                 Log.Logger.Error($"Program: Critical Exception occured: {ex.Source} - {ex.Message}");
             }
+
+            Log.Information($"Program: FNX2PLD terminated.");
         }
 
         private static bool Wait()
