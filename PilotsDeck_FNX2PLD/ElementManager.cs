@@ -15,7 +15,6 @@ namespace PilotsDeck_FNX2PLD
         private bool firstUpdate = true;
 
         private double lastSwitchVS;
-        private int lastValueVS = 0;
         private bool isAltVs = false;
         private double lastSwitchAlt;
         private bool isLightTest = false;
@@ -29,6 +28,7 @@ namespace PilotsDeck_FNX2PLD
             MemoryPatterns = new()
             {
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
+                { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
                 { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
@@ -42,11 +42,15 @@ namespace PilotsDeck_FNX2PLD
             //// MEMORY VALUES
             //FCU
             AddMemoryValue("fcuSpd", MemoryPatterns["FCU-1"], -0x6C, 8, "double");
-            AddMemoryValue("fcuHdgDisplay", MemoryPatterns["FCU-1"], -0x20, 4, "int");
-            AddMemoryValue("fcuHdgFma", MemoryPatterns["FCU-1"], -0x60, 4, "int");
+            AddMemoryValue("fcuSpdManaged", MemoryPatterns["FCU-1"], -0x28, 4, "int");
+            AddMemoryValue("fcuSpdDashed", MemoryPatterns["FCU-2"], -0x90C, 1, "bool");
+            AddMemoryValue("fcuHdgManaged", MemoryPatterns["FCU-1"], -0x20, 4, "int");
+            AddMemoryValue("fcuHdg", MemoryPatterns["FCU-1"], -0x60, 4, "int");
+            AddMemoryValue("fcuHdgDashed", MemoryPatterns["FCU-2"], -0x1764, 1, "bool");
             AddMemoryValue("fcuAlt", MemoryPatterns["FCU-1"], -0x5C, 4, "int");
-            AddMemoryValue("fcuVsDisplay", MemoryPatterns["FCU-1"], -0x18, 4, "int");
-            AddMemoryValue("fcuVsFma", MemoryPatterns["FCU-1"], -0x64, 4, "int");
+            AddMemoryValue("fcuVsManaged", MemoryPatterns["FCU-1"], -0x18, 4, "int");
+            AddMemoryValue("fcuVs", MemoryPatterns["FCU-1"], -0x64, 4, "int");
+            AddMemoryValue("fcuVsDashed", MemoryPatterns["FCU-2"], -0x66C, 1, "bool");
 
             //ISIS
             AddMemoryValue("isisStd", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
@@ -67,6 +71,7 @@ namespace PilotsDeck_FNX2PLD
             //BAT2
             AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], -0x284, 8, "double");
             AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-1"], -0x35C, 8, "double");
+            AddMemoryValue("bat2Display3", MemoryPatterns["BAT2-1"], -0x374, 8, "double");
 
             //RUDDER
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0x8C, 8, "double");
@@ -134,6 +139,11 @@ namespace PilotsDeck_FNX2PLD
 
                 //RUDDER
                 AddIpcOffset("rudder", "float", 4);
+
+                //FCU Dashes
+                AddIpcOffset("fcuSpdDashed", "byte", 1);
+                AddIpcOffset("fcuHdgDashed", "byte", 1);
+                AddIpcOffset("fcuVsDashed", "byte", 1);
             }
         }
 
@@ -239,14 +249,23 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "MACH\n";
 
+                    int value;
                     if (isSpdManaged)
+                        value = MemoryValues["fcuSpdManaged"].GetValue();
+                    else
+                        value = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
+
+                    if (MemoryValues["fcuSpdDashed"].GetValue())
                         result += "---*";
                     else
                     {
                         if (isModeSpd)
-                            result += ((int)Math.Round(MemoryValues["fcuSpd"].GetValue())).ToString();
+                            result += value.ToString("D3");
                         else
-                            result += "." + ((int)Math.Round(MemoryValues["fcuSpd"].GetValue())).ToString();
+                            result += "." + value.ToString();
+
+                        if (isSpdManaged)
+                            result += "*";
                     }
                 }
             }
@@ -265,19 +284,24 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "TRK\n";
 
-                    string hdgDisp = MemoryValues["fcuHdgDisplay"].GetValue()?.ToString("D3") ?? "000";
-                    string hdgFma = MemoryValues["fcuHdgFma"].GetValue()?.ToString("D3") ?? "000";
+                    bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
 
-                    if (isHdgManaged)
-                    {
-                        if (hdgDisp != "000")
-                            result += hdgDisp + "*";
-                        else
-                            result += "---*";
-                    }
+                    string hdgMng = MemoryValues["fcuHdgManaged"].GetValue()?.ToString("D3") ?? "000";
+                    string hdg = MemoryValues["fcuHdg"].GetValue()?.ToString("D3") ?? "000";
+                    string value = hdg;
+                    if (isHdgManaged && !isHdgDashed && hdgMng != "000")
+                        value = hdgMng;
+
+
+                    if (isHdgDashed)
+                        result += "---*";
                     else
                     {
-                        result += hdgFma;
+                        result += value;
+                        if (isHdgManaged)
+                        {
+                            result += "*";
+                        }
                     }
                 }
             }
@@ -313,11 +337,11 @@ namespace PilotsDeck_FNX2PLD
                     else
                         result = "FPA\n";
 
-                    int vs = MemoryValues["fcuVsDisplay"].GetValue() ?? 0;
+                    int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
                     if (isAltVs)
-                        vs = MemoryValues["fcuVsFma"].GetValue() ?? 0;
+                        vs = MemoryValues["fcuVs"].GetValue() ?? 0;
 
-                    if (!isAltVs && vs == 0)
+                    if (MemoryValues["fcuVsDashed"].GetValue())
                         result += "-----";
                     else if (isModeHdgVs)
                     {
@@ -334,7 +358,6 @@ namespace PilotsDeck_FNX2PLD
 
                         result += fpa.ToString("F1", formatInfo);
                     }
-                    lastValueVS = vs;
                 }
             }
             IPCOffsets["fcuVsStr"].SetValue(result);
@@ -343,28 +366,55 @@ namespace PilotsDeck_FNX2PLD
         private void UpdateRawFCU()
         {
             //SPD
-            IPCOffsets["fcuSpd"].SetValue((float)Math.Round(MemoryValues["fcuSpd"].GetValue()));
+            bool isSpdManaged = IPCManager.ReadLVar("I_FCU_SPEED_MANAGED") == 1;
+
+            float fvalue;
+            if (isSpdManaged)
+                fvalue = MemoryValues["fcuSpdManaged"].GetValue();
+            else
+                fvalue = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
+
+            IPCOffsets["fcuSpd"].SetValue(fvalue);
+            if (MemoryValues["fcuSpdDashed"].GetValue())
+                IPCOffsets["fcuSpdDashed"].SetValue((byte)1);
+            else
+                IPCOffsets["fcuSpdDashed"].SetValue((byte)0);
 
             //HDG
             bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
+            bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
 
-            if (isHdgManaged)
-                IPCOffsets["fcuHdg"].SetValue((int)(MemoryValues["fcuHdgDisplay"].GetValue() ?? 0));
+            int hdgMng = MemoryValues["fcuHdgManaged"].GetValue() ?? 0;
+            int hdg = MemoryValues["fcuHdg"].GetValue() ?? 0;
+            int ivalue = hdg;
+            if (isHdgManaged && !isHdgDashed && hdgMng != 0)
+                ivalue = hdgMng;
+
+            IPCOffsets["fcuHdg"].SetValue(ivalue);
+            if (MemoryValues["fcuHdgDashed"].GetValue())
+                IPCOffsets["fcuHdgDashed"].SetValue((byte)1);
             else
-                IPCOffsets["fcuHdg"].SetValue((int)(MemoryValues["fcuHdgFma"].GetValue() ?? 0));
+                IPCOffsets["fcuHdgDashed"].SetValue((byte)0);
+
 
             //ALT
             IPCOffsets["fcuAlt"].SetValue((int)(MemoryValues["fcuAlt"].GetValue() ?? 100));
 
             //VS
             bool isModeHdgVs = IPCManager.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
-            float vs = MemoryValues["fcuVsDisplay"].GetValue() ?? 0;
+
+            float vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
             if (isAltVs)
-                vs = MemoryValues["fcuVsFma"].GetValue() ?? 0;
+                vs = MemoryValues["fcuVs"].GetValue() ?? 0;
             if (!isModeHdgVs)
                 vs /= 1000.0f;
 
             IPCOffsets["fcuVs"].SetValue(vs);
+            if (MemoryValues["fcuVsDashed"].GetValue())
+                IPCOffsets["fcuVsDashed"].SetValue((byte)1);
+            else
+                IPCOffsets["fcuVsDashed"].SetValue((byte)0);
+
         }
 
         private void UpdateISIS()
@@ -470,8 +520,10 @@ namespace PilotsDeck_FNX2PLD
                 IPCOffsets["bat1"].SetValue((float)Math.Round(value,1));
 
             value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
-            if (value < 10.0 && value > 40.0)
+            if (value < 10.0 || value > 40.0)
                 value = MemoryValues["bat2Display2"].GetValue() ?? 0.0;
+            if (value < 10.0 || value > 40.0)
+                value = MemoryValues["bat2Display3"].GetValue() ?? 0.0;
 
             if (value != 0)
             {
