@@ -96,17 +96,9 @@ namespace PilotsDeck_FNX2PLD
                 airOffset.Reconnect();
 
             bool processResult = FSUIPCProcess();
-            Log.Logger.Debug($"DEBUG - IsSimRunning: {IsSimRunning()}");
-            Log.Logger.Debug($"DEBUG - OpenSafeFSUIPC: {OpenSafeFSUIPC()}");
-            Log.Logger.Debug($"DEBUG - GetAircraftString: {GetAircraftString()}");
-            Log.Logger.Debug($"DEBUG - processResult: {processResult}");
             while (IsSimRunning() && OpenSafeFSUIPC() && !processResult && !cancellationToken.IsCancellationRequested)
             {
                 Log.Logger.Information($"WaitForFenixAircraft: FSUIPC not ready for Process - waiting {waitDuration / 1000}s for Retry");
-                Log.Logger.Debug($"DEBUG - IsSimRunning: {IsSimRunning()}");
-                Log.Logger.Debug($"DEBUG - OpenSafeFSUIPC: {OpenSafeFSUIPC()}");
-                Log.Logger.Debug($"DEBUG - GetAircraftString: {GetAircraftString()}");
-                Log.Logger.Debug($"DEBUG - processResult: {processResult}");
                 Thread.Sleep(waitDuration);
                 processResult = FSUIPCProcess();
             }
@@ -116,7 +108,6 @@ namespace PilotsDeck_FNX2PLD
                 Log.Logger.Error($"WaitForFenixAircraft: FSUIPC Connection or Simulator not available - aborting");
                 return false;
             }
-
 
             while (IsSimRunning() && OpenSafeFSUIPC() && !IsAircraftFenix() && !cancellationToken.IsCancellationRequested)
             {
@@ -136,7 +127,7 @@ namespace PilotsDeck_FNX2PLD
 
         public static bool IsAircraftFenix()
         {
-            return GetAircraftString().Contains("fnx320");
+            return GetAircraftString().ToLower().Contains("fnx320");
         }
 
         public static string GetAircraftString()
