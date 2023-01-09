@@ -96,9 +96,17 @@ namespace PilotsDeck_FNX2PLD
                 airOffset.Reconnect();
 
             bool processResult = FSUIPCProcess();
+            Log.Logger.Debug($"DEBUG - IsSimRunning: {IsSimRunning()}");
+            Log.Logger.Debug($"DEBUG - OpenSafeFSUIPC: {OpenSafeFSUIPC()}");
+            Log.Logger.Debug($"DEBUG - GetAircraftString: {GetAircraftString()}");
+            Log.Logger.Debug($"DEBUG - processResult: {processResult}");
             while (IsSimRunning() && OpenSafeFSUIPC() && !processResult && !cancellationToken.IsCancellationRequested)
             {
                 Log.Logger.Information($"WaitForFenixAircraft: FSUIPC not ready for Process - waiting {waitDuration / 1000}s for Retry");
+                Log.Logger.Debug($"DEBUG - IsSimRunning: {IsSimRunning()}");
+                Log.Logger.Debug($"DEBUG - OpenSafeFSUIPC: {OpenSafeFSUIPC()}");
+                Log.Logger.Debug($"DEBUG - GetAircraftString: {GetAircraftString()}");
+                Log.Logger.Debug($"DEBUG - processResult: {processResult}");
                 Thread.Sleep(waitDuration);
                 processResult = FSUIPCProcess();
             }
