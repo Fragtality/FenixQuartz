@@ -4,7 +4,7 @@ To make one Thing directly clear: it is a **HACK**. Literally: It accesses the P
 
 # Installation
 Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc).<br/>
-It is currently compiled for .NET 7, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64. (Do not confuse it with arm64!)<br/>
+It is currently compiled for .NET **7**, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64. (Do not confuse it with arm64!)<br/>
 You need at least FSUIPC7 Version **7.3.15**! Please make sure you install / update the WASM Module (its manifest.json should show 0.9.1).<br/>
 
 It is designed to be started (and stopped) by FSUIPC - add this to your ini File:
