@@ -35,8 +35,9 @@ namespace PilotsDeck_FNX2PLD
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 //{ "BAT2-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
-                { "RUDDER-1", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                { "RUDDER-2", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) }
+                //{ "RUDDER-1", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+                //{ "RUDDER-2", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) }
+                { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
             };
 
 
@@ -57,9 +58,13 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("isisStd", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
             AddMemoryValue("isisBaro", MemoryPatterns["ISIS-1"], - 0xEC, 8, "double");
 
-            //COM
+            //COM1
             AddMemoryValue("comStandby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
             AddMemoryValue("comActive", MemoryPatterns["COM1-1"], -0x24, 4, "int");
+
+            //COM2
+            AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
+            AddMemoryValue("com2Active", MemoryPatterns["COM1-1"], -0x84, 4, "int");
 
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
@@ -76,8 +81,9 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], 0x51C, 8, "double");
 
             //RUDDER
-            AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0x8C, 8, "double");
-            AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-2"], 0x8C, 8, "double");
+            //AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0x8C, 8, "double");
+            //AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-2"], 0x8C, 8, "double");
+            AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
 
 
             //// IPC VALUES - StreamDeck
@@ -92,7 +98,7 @@ namespace PilotsDeck_FNX2PLD
                 //ISIS
                 AddIpcOffset("isisStr", "string", 6);
 
-                //COM standby
+                //COM1 standby
                 AddIpcOffset("comStandbyStr", "string", 8);
 
                 //XPDR
@@ -110,8 +116,12 @@ namespace PilotsDeck_FNX2PLD
                 //VS Selected
                 AddIpcOffset("isAltVs", "string", 2);
 
-                //COM active
+                //COM1 active
                 AddIpcOffset("comActiveStr", "string", 8);
+
+                //COM2
+                AddIpcOffset("com2StandbyStr", "string", 8);
+                AddIpcOffset("com2ActiveStr", "string", 8);
             }
             //// IPC VALUES - Raw Mode
             else
@@ -126,7 +136,7 @@ namespace PilotsDeck_FNX2PLD
                 AddIpcOffset("isisStd", "byte", 1);
                 AddIpcOffset("isisBaro", "float", 4);
 
-                //COM standby
+                //COM1
                 AddIpcOffset("comActive", "int", 4);
                 AddIpcOffset("comStandby", "int", 4);
 
@@ -146,6 +156,10 @@ namespace PilotsDeck_FNX2PLD
                 AddIpcOffset("fcuSpdDashed", "byte", 1);
                 AddIpcOffset("fcuHdgDashed", "byte", 1);
                 AddIpcOffset("fcuVsDashed", "byte", 1);
+
+                //COM2
+                AddIpcOffset("com2Active", "int", 4);
+                AddIpcOffset("com2Standby", "int", 4);
             }
         }
 
@@ -191,7 +205,8 @@ namespace PilotsDeck_FNX2PLD
             UpdateFMA();
             UpdateFCU();
             UpdateISIS();
-            UpdateCom();
+            UpdateCom("");
+            UpdateCom("2");
             UpdateXpdr();
             UpdateBatteries();
             UpdateRudder();
@@ -453,27 +468,27 @@ namespace PilotsDeck_FNX2PLD
             }
         }
 
-        private void UpdateCom()
+        private void UpdateCom(string com)
         {
-            int valueStandby = MemoryValues["comStandby"].GetValue() ?? 0;
-            int valueActive = MemoryValues["comActive"].GetValue() ?? 0;
+            int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
+            int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
 
             if (!Program.rawValues)
             {
                 if (valueStandby > 0)
-                    IPCOffsets["comStandbyStr"].SetValue(valueStandby.ToString());
+                    IPCOffsets[$"com{com}StandbyStr"].SetValue(valueStandby.ToString());
                 else
-                    IPCOffsets["comStandbyStr"].SetValue("");
+                    IPCOffsets[$"com{com}StandbyStr"].SetValue("");
 
                 if (valueActive > 0)
-                    IPCOffsets["comActiveStr"].SetValue(valueActive.ToString());
+                    IPCOffsets[$"com{com}ActiveStr"].SetValue(valueActive.ToString());
                 else
-                    IPCOffsets["comActiveStr"].SetValue("");
+                    IPCOffsets[$"com{com}ActiveStr"].SetValue("");
             }
             else
             {
-                IPCOffsets["comActive"].SetValue(valueActive);
-                IPCOffsets["comStandby"].SetValue(valueStandby);
+                IPCOffsets[$"com{com}Active"].SetValue(valueActive);
+                IPCOffsets[$"com{com}Standby"].SetValue(valueStandby);
             }
         }
 
@@ -539,19 +554,20 @@ namespace PilotsDeck_FNX2PLD
         private void UpdateRudder()
         {
             double value = MemoryValues["rudderDisplay1"].GetValue() ?? 0.0;
-            if (value == 0.0)
-                value = MemoryValues["rudderDisplay2"].GetValue() ?? 0.0;
+            //if (value == 0.0)
+            //    value = MemoryValues["rudderDisplay2"].GetValue() ?? 0.0;
             
             value = Math.Round(value, 2);
             if (!Program.rawValues)
             {
+                string space = (Math.Abs(value) >= 10 ? "" : " ");
                 string result;
                 if (value <= -0.1)
-                    result = "L ";
+                    result = "L" + space;
                 else if (value >= 0.1)
-                    result = "R ";
+                    result = "R" + space;
                 else
-                    result = "  ";
+                    result = " " + space;
                 result += string.Format(formatInfo, "{0:F1}", Math.Abs(value));
 
                 IPCOffsets["rudderStr"].SetValue(result);
