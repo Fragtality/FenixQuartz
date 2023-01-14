@@ -33,6 +33,40 @@ namespace PilotsDeck_FNX2PLD
                 Log.Logger.Error($"MemoryOffset: Error in UpdateBuffer() - valueBuffer is null");
         }
 
+        public bool IsIntegerZero()
+        {
+            if (valueBuffer == null)
+                return true;
+            else if (BitConverter.ToInt32(valueBuffer, 0) == 0)
+                return true;
+            else return false;
+        }
+
+        public bool IsTinyValue()
+        {
+            if (valueBuffer == null)
+                return false;
+
+            if (TypeName == "double")
+            {
+                double dbl = BitConverter.ToDouble(valueBuffer, 0);
+                if (dbl > -0.001 &&dbl < 0.001)
+                    return true;
+                else
+                    return false;
+            }
+            if (TypeName == "float")
+            {
+                double flt = BitConverter.ToSingle(valueBuffer, 0);
+                if (flt > -0.001f && flt < 0.001f)
+                    return true;
+                else
+                    return false;
+            }
+
+            return false;
+        }
+
         public virtual dynamic? GetValue()
         {
             try
