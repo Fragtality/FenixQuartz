@@ -195,9 +195,9 @@ namespace PilotsDeck_FNX2PLD
                     if (measures > averageTick)
                     {
                         Log.Logger.Debug($"MainLoop: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / averageTick)}ms --------------------------------");
-                        Log.Logger.Debug($"rudderDisplay1: {elementManager.MemoryValues["rudderDisplay1"].GetValue()}");
-                        Log.Logger.Debug($"rudderDisplay2: {elementManager.MemoryValues["rudderDisplay2"].GetValue()}");
-                        Log.Logger.Debug($"rudderDisplay3: {elementManager.MemoryValues["rudderDisplay3"].GetValue()}");
+                        Log.Logger.Debug($"rudderDisplay1: {elementManager.MemoryValues["rudderDisplay1"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay1"].IsTinyValue()})");
+                        Log.Logger.Debug($"rudderDisplay2: {elementManager.MemoryValues["rudderDisplay2"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay2"].IsTinyValue()})");
+                        Log.Logger.Debug($"rudderDisplay3: {elementManager.MemoryValues["rudderDisplay3"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay3"].IsTinyValue()})");
                         measures = 0;
                         watch.Reset();
                     }

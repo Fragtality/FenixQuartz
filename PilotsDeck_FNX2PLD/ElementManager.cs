@@ -593,7 +593,7 @@ namespace PilotsDeck_FNX2PLD
             {
                 foreach (var offset in IPCOffsets.Values)
                 {
-                    Log.Information($"ElementManager: FSUIPC Offset <{offset.ID}> is at Address 0x{offset.Offset.Address:X}:s:{offset.Size}");
+                    Log.Information($"ElementManager: FSUIPC Offset <{offset.ID}> is at Address 0x{offset.Offset.Address:X}:{offset.Size}:s");
                 }
             }
         }
