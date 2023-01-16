@@ -32,12 +32,8 @@ namespace PilotsDeck_FNX2PLD
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
                 { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
-                //{ "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                //{ "BAT2-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
-                //{ "RUDDER-1", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                //{ "RUDDER-2", new MemoryPattern("46 00 43 00 20 00 52 00 75 00 64 00 64 00 65 00 72 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) }
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
             };
 
@@ -76,14 +72,9 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
 
             //BAT2
-            //AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], -0x284, 8, "double");
-            //AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-1"], -0x35C, 8, "double");
-            //AddMemoryValue("bat2Display3", MemoryPatterns["BAT2-1"], -0x374, 8, "double");
             AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], 0x51C, 8, "double");
 
             //RUDDER
-            //AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0x8C, 8, "double");
-            //AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-2"], 0x8C, 8, "double");
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
             AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-1"], 0xBCE, 8, "double");
             AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
@@ -542,10 +533,6 @@ namespace PilotsDeck_FNX2PLD
                 IPCOffsets["bat1"].SetValue((float)Math.Round(value,1));
 
             value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
-            //if (value < 10.0 || value > 30.0)
-            //    value = MemoryValues["bat2Display2"].GetValue() ?? 0.0;
-            //if (value < 10.0 || value > 30.0)
-            //    value = MemoryValues["bat2Display3"].GetValue() ?? 0.0;
 
             if (value != 0)
             {
@@ -558,10 +545,6 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateRudder()
         {
-            //double v1 = MemoryValues["rudderDisplay1"].GetValue();
-            //double v2 = MemoryValues["rudderDisplay2"].GetValue();
-            //double v3 = MemoryValues["rudderDisplay3"].GetValue();
-
             double value = MemoryValues["rudderDisplay1"].GetValue();
             if (MemoryValues["rudderDisplay1"].IsTinyValue())
             {
@@ -569,10 +552,6 @@ namespace PilotsDeck_FNX2PLD
                 if (MemoryValues["rudderDisplay2"].IsTinyValue())
                     value = MemoryValues["rudderDisplay3"].GetValue();
             }
-
-            //double value = MemoryValues["rudderDisplay1"].GetValue() ?? 0.0;
-            //if (value == 0.0)
-            //    value = MemoryValues["rudderDisplay2"].GetValue() ?? 0.0;
 
             value = Math.Round(value, 2);
             if (!Program.rawValues)
