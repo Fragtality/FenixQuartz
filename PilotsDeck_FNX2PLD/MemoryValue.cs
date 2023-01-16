@@ -50,7 +50,7 @@ namespace PilotsDeck_FNX2PLD
             if (TypeName == "double")
             {
                 double dbl = BitConverter.ToDouble(valueBuffer, 0);
-                if (dbl > -0.001 &&dbl < 0.001)
+                if (dbl > -0.001 && dbl < 0.001 && dbl != 0.00)
                     return true;
                 else
                     return false;
@@ -58,7 +58,7 @@ namespace PilotsDeck_FNX2PLD
             if (TypeName == "float")
             {
                 double flt = BitConverter.ToSingle(valueBuffer, 0);
-                if (flt > -0.001f && flt < 0.001f)
+                if (flt > -0.001f && flt < 0.001f && flt != 0.00f)
                     return true;
                 else
                     return false;
