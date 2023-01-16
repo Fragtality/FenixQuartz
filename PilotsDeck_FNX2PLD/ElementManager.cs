@@ -467,19 +467,55 @@ namespace PilotsDeck_FNX2PLD
             int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
             int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
 
+            string tmpCom = com == "" ? "1" : com;
+            bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_ILS") == 1;
+            bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_ADF") == 1;
+
             if (!Program.rawValues)
             {
-                if (valueStandby > 0)
-                    IPCOffsets[$"com{com}StandbyStr"].SetValue(valueStandby.ToString());
-                else
-                    IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                if (courseMode)
+                {
+                    if (valueActive > 0)
+                    {
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
+                        if (valueStandby < 360)
+                            IPCOffsets[$"com{com}StandbyStr"].SetValue("C-" + string.Format(new CultureInfo("en-US"), "{0,3:F0}", valueStandby).Replace(' ','0'));
+                        else
+                            IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
+                    }
+                    else
+                    {
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                    }
 
-                if (valueActive == 118000)
-                    IPCOffsets[$"com{com}ActiveStr"].SetValue("dAtA");
-                else if (valueActive > 0)
-                    IPCOffsets[$"com{com}ActiveStr"].SetValue(valueActive.ToString());
+                }
+                else if (adfMode)
+                {
+                    if (valueActive > 0)
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueActive / 100.0f).Replace(' ', '0'));
+                    else
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+
+                    if (valueStandby > 0)
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueStandby / 100.0f).Replace(' ', '0'));
+                    else
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                }
                 else
-                    IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+                {
+                    if (valueActive == 118000)
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue("dAtA");
+                    else if (valueActive > 0)
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
+                    else
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+
+                    if (valueStandby > 0)
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
+                    else
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                }
             }
             else
             {
