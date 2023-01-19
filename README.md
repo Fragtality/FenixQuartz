@@ -1,6 +1,7 @@
 # PilotsDeck_FNX
 This Binary is used read out some (Quartz) Displays of the Fenix A320 and write their Data to FSUIPC Offsets. There PilotsDeck (or any other Application using FSUIPC basically) can pick it up to display it on the StreamDeck.<br/>
 To make one Thing directly clear: it is a **HACK**. Literally: It accesses the Process Memory directly (read-only!) to get the Data. It will likely break with the next Update (until I'll managed to find the correct Spots again).<br/>Currently compatible with Fenix Version **1.0.6.146** and MSFS **SU11**.<br/>
+<br/>
 
 # Installation
 - Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc).
@@ -14,18 +15,21 @@ It is designed to be started (and stopped) by FSUIPC - add this to your ini File
 RunIf1=READY,KILL,X:\PATH\YOU\USED\PilotsDeck_FNX2PLD.exe
 ```
 But you can also start/stop it manually when MSFS is running!
+<br/>
 
 # Usage
 If you want to start the Binary manually and before the Sim is running, set the *waitForConnect* Parameter in the Config-File to true!<br/>
 When it is running (started either automatically or manually) just set up your Flight as you normally would. The Tool will wait in the Background until the Fenix becomes active. It also automatically detects when you have clicked Ready-to-Fly before its intial Scan (the Timer from previous Versions is gone now).<br/>
 Note that this Application has no Window - you have to use Task Manager if you want to see if is running. It should close automatically after MSFS is closed (even when started manually with *waitForConnect*).<br/>
 The Memory Scan usually takes about one Second and the time it takes for an Update Cycle is around 0,3ms on average (on my System).
+<br/>
 
 # Usage with other 3rd Party Tools
 The Binary offers a Raw-Value-Mode since Version 0.6. In that Mode, the Display-Values for the FCU (Speed, Heading, Altitude, Vertical Speed) are exported directly as Numeric Values to FSUIPC Offsets (instead of a preformatted String for PilotsDeck / StreamDeck). That way the Binary can be used with 3rd Party Tools to build a working FCU (like Spad or MobiFlight for Example)!<br/>
 Besides the displayed Value it also exports the "is Dashed" State of that Display. The State of the Dot ("is Managed") can directly be read from the Fenix Lvars (I_FCU_SPEED_MANAGED, I_FCU_HEADING_MANAGED, I_FCU_ALTITUDE_MANAGED). So with any Client capable of reading FSUIPC-Offsets and Lvars, you have all the Information to build an accurate working FCU!<br/>
 To enable that Mode, set *rawValues* in the Config-File to true. Size, Type and Addresses of the Offsets can be found in the Logs when the Binary is started and is connected to MSFS/Fenix. The Order and Addresses will stay the same (unless the Offset-Base is changed in the Config-File).<br/>
 Please mind that the Default is false, so you have to re-enable it after an Update of the Binary!
+<br/>
 
 # Configuration
 You can configure some Parameters in the PilotsDeck_FNX2PLD.dll.config File:
