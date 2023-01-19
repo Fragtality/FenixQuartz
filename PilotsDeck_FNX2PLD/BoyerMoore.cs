@@ -1,4 +1,6 @@
-﻿namespace PilotsDeck_FNX2PLD
+﻿using System;
+
+namespace PilotsDeck_FNX2PLD
 {
     public static class BoyerMoore
     {

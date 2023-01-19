@@ -1,5 +1,5 @@
 ﻿using FSUIPC;
-using System.Text;
+using System;
 
 namespace PilotsDeck_FNX2PLD
 {

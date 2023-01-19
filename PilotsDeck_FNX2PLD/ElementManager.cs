@@ -1,6 +1,9 @@
 ﻿using FSUIPC;
 using Serilog;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Threading;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -56,8 +59,8 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("isisBaro", MemoryPatterns["ISIS-1"], - 0xEC, 8, "double");
 
             //COM1
-            AddMemoryValue("comStandby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
-            AddMemoryValue("comActive", MemoryPatterns["COM1-1"], -0x24, 4, "int");
+            AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
+            AddMemoryValue("com1Active", MemoryPatterns["COM1-1"], -0x24, 4, "int");
 
             //COM2
             AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
@@ -93,7 +96,7 @@ namespace PilotsDeck_FNX2PLD
                 AddIpcOffset("isisStr", "string", 6);
 
                 //COM1 standby
-                AddIpcOffset("comStandbyStr", "string", 8);
+                AddIpcOffset("com1StandbyStr", "string", 8);
 
                 //XPDR
                 AddIpcOffset("xpdrStr", "string", 5);
@@ -111,7 +114,7 @@ namespace PilotsDeck_FNX2PLD
                 AddIpcOffset("isAltVs", "string", 2);
 
                 //COM1 active
-                AddIpcOffset("comActiveStr", "string", 8);
+                AddIpcOffset("com1ActiveStr", "string", 8);
 
                 //COM2
                 AddIpcOffset("com2StandbyStr", "string", 8);
@@ -131,8 +134,8 @@ namespace PilotsDeck_FNX2PLD
                 AddIpcOffset("isisBaro", "float", 4);
 
                 //COM1
-                AddIpcOffset("comActive", "int", 4);
-                AddIpcOffset("comStandby", "int", 4);
+                AddIpcOffset("com1Active", "int", 4);
+                AddIpcOffset("com1Standby", "int", 4);
 
                 //XPDR
                 AddIpcOffset("xpdr", "short", 2);
@@ -199,7 +202,7 @@ namespace PilotsDeck_FNX2PLD
             UpdateFMA();
             UpdateFCU();
             UpdateISIS();
-            UpdateCom("");
+            UpdateCom("1");
             UpdateCom("2");
             UpdateXpdr();
             UpdateBatteries();
@@ -327,8 +330,8 @@ namespace PilotsDeck_FNX2PLD
                 else
                 {
                     result = MemoryValues["fcuAlt"].GetValue()?.ToString("D5") ?? "00100";
-                    if (isAltHundred)
-                        result = result.Insert(2, " ");
+                    if (isAltHundred && !string.IsNullOrEmpty(Program.altScaleDelim))
+                        result = result.Insert(2, Program.altScaleDelim);
                     if (isAltManaged)
                         result += "*";
                 }
@@ -467,9 +470,8 @@ namespace PilotsDeck_FNX2PLD
             int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
             int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
 
-            string tmpCom = com == "" ? "1" : com;
-            bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_ILS") == 1;
-            bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{tmpCom}_ADF") == 1;
+            bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ILS") == 1;
+            bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ADF") == 1;
 
             if (!Program.rawValues)
             {

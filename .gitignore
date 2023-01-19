@@ -7,6 +7,7 @@
 Releases/
 *CopyToMSFS.ps1
 desktop.ini
+build.lck
 
 # User-specific files
 *.rsuser

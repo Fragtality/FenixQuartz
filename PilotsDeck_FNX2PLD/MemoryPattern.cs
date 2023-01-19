@@ -1,4 +1,6 @@
-﻿namespace PilotsDeck_FNX2PLD
+﻿using System.Collections.Generic;
+
+namespace PilotsDeck_FNX2PLD
 {
     public class MemoryPattern
     {

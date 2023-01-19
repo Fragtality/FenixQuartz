@@ -1,7 +1,8 @@
 ﻿using FSUIPC;
 using Serilog;
 using System.Diagnostics;
-//Log.Logger.Information($"IPCManager: ");
+using System.Linq;
+using System.Threading;
 
 namespace PilotsDeck_FNX2PLD
 {

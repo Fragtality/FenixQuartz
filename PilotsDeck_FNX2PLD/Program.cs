@@ -1,7 +1,10 @@
 ﻿using FSUIPC;
 using Serilog;
+using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -14,6 +17,7 @@ namespace PilotsDeck_FNX2PLD
         public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
         public static readonly bool rawValues = Convert.ToBoolean(ConfigurationManager.AppSettings["rawValues"]);
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
+        public static readonly string altScaleDelim = Convert.ToString(ConfigurationManager.AppSettings["altScaleDelim"]) ?? " ";
         public static readonly string groupName = "FNX2PLD";
 
         private static MemoryScanner? scanner = null;
@@ -22,9 +26,11 @@ namespace PilotsDeck_FNX2PLD
         private static CancellationToken cancellationToken;
         private static bool wasmInitialized = false;
 
+
         public static void Main()
         {
-            LoggerConfiguration loggerConfiguration = new LoggerConfiguration().WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3);
+            LoggerConfiguration loggerConfiguration = new LoggerConfiguration().WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message} {NewLine}{Exception}");
             if (logLevel == "Warning")
                 loggerConfiguration.MinimumLevel.Warning();
             else if (logLevel == "Debug")
@@ -34,7 +40,7 @@ namespace PilotsDeck_FNX2PLD
             Log.Logger = loggerConfiguration.CreateLogger();
             Log.Information($"-----------------------------------------------------------------------");
             Log.Information($"Program: FNX2PLD started! Log Level: {logLevel} Log File: {logFilePath}");
-
+                        
             try
             {
                 CancellationTokenSource cancellationTokenSource = new();

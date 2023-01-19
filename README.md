@@ -21,7 +21,7 @@ Note that this Application has no Window - you have to use Task Manager if you w
 The Memory Scan usually takes about one Second and the time it takes for an Update Cycle is around 0,3ms on average (on my System).
 
 # Usage with other 3rd Party Tools
-The Binary offers a Raw-Value-Mode since Version 0.6. In that Mode, the Display-Values for the FCU (Speed, Heading, Altitude, Vertical Speed) are exported directly as Numeric Values to FSUIPC Offsets (instead of a preformatted String for PilotsDeck). That way the Binary can be used with 3rd Party Tools to build a working FCU (like Spad or MobiFlight for Example)!<br/>
+The Binary offers a Raw-Value-Mode since Version 0.6. In that Mode, the Display-Values for the FCU (Speed, Heading, Altitude, Vertical Speed) are exported directly as Numeric Values to FSUIPC Offsets (instead of a preformatted String for PilotsDeck / StreamDeck). That way the Binary can be used with 3rd Party Tools to build a working FCU (like Spad or MobiFlight for Example)!<br/>
 Besides the displayed Value it also exports the "is Dashed" State of that Display. The State of the Dot ("is Managed") can directly be read from the Fenix Lvars (I_FCU_SPEED_MANAGED, I_FCU_HEADING_MANAGED, I_FCU_ALTITUDE_MANAGED). So with any Client capable of reading FSUIPC-Offsets and Lvars, you have all the Information to build an accurate working FCU!<br/>
 To enable that Mode, set *rawValues* in the Config-File to true. Size, Type and Addresses of the Offsets can be found in the Logs when the Binary is started and is connected to MSFS/Fenix. The Order and Addresses will stay the same (unless the Offset-Base is changed in the Config-File).<br/>
 Please mind that the Default is false, so you have to re-enable it after an Update of the Binary!
@@ -32,5 +32,6 @@ You can configure some Parameters in the PilotsDeck_FNX2PLD.dll.config File:
 - **offsetBase**: The first (FSUIPC) Offset Address to use (hexadecimal). Default: *0x5408*
 - **rawValues**: When *true*, the FCU Values are exported directly as numeric Values. Default: *false*
 - **updateIntervall**: The time between each Update in Milliseconds. Default: *50*
+- **altScaleDelim**: The Character to be inserted in the FCU Altitude String when the Scale is set to 100. Default: *" "* (Space)
 
 
