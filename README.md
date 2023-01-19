@@ -3,16 +3,17 @@ This Binary is used read out some (Quartz) Displays of the Fenix A320 and write 
 To make one Thing directly clear: it is a **HACK**. Literally: It accesses the Process Memory directly (read-only!) to get the Data. It will likely break with the next Update (until I'll managed to find the correct Spots again).<br/>Currently compatible with Fenix Version **1.0.6.146** and MSFS **SU11**.<br/>
 
 # Installation
-Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc).<br/>
-It is currently compiled for .NET **7**, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64. (Do not confuse it with arm64!)<br/>
-You need at least FSUIPC7 Version **7.3.15**! Please make sure you install / update the WASM Module (its manifest.json should show 0.9.1).<br/>
+- Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc).
+- If you're upgrading from a Version before **0.8**, please delete all old Files before unpacking the new Version! (To avoid DLL conflicts, the Binary contains now everything it needs except the FSUIPC_WAPID.dll)
+- It is currently compiled for .NET **7**, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64. (Do not confuse it with arm64!)
+- You need at least FSUIPC7 Version **7.3.15**! Please make sure you install / update the WASM Module (its manifest.json should show 0.9.1).<br/>
 
 It is designed to be started (and stopped) by FSUIPC - add this to your ini File:
 ```
 [Programs]
 RunIf1=READY,KILL,X:\PATH\YOU\USED\PilotsDeck_FNX2PLD.exe
 ```
-But you can also start/stop it manually!
+But you can also start/stop it manually when MSFS is running!
 
 # Usage
 If you want to start the Binary manually and before the Sim is running, set the *waitForConnect* Parameter in the Config-File to true!<br/>
