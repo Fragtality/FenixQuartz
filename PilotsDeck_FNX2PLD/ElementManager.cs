@@ -255,13 +255,21 @@ namespace PilotsDeck_FNX2PLD
             if (isFcuPowered)
             {
                 if (isLightTest)
-                    result = "8888\n888*";
+                {
+                    if (Program.addFcuMode)
+                        result = "8888\n888*";
+                    else
+                        result = "888*";
+                }
                 else
                 {
-                    if (isModeSpd)
-                        result = "SPD\n";
-                    else
-                        result = "MACH\n";
+                    if (Program.addFcuMode)
+                    {
+                        if (isModeSpd)
+                            result = "SPD\n";
+                        else
+                            result = "MACH\n";
+                    }
 
                     int value;
                     if (isSpdManaged)
@@ -290,13 +298,21 @@ namespace PilotsDeck_FNX2PLD
             if (isFcuPowered)
             {
                 if (isLightTest)
-                    result = "888\n888*";
+                {
+                    if (Program.addFcuMode)
+                        result = "888\n888*";
+                    else
+                        result = "888*";
+                }
                 else
                 {
-                    if (isModeHdgVs)
-                        result = "HDG\n";
-                    else
-                        result = "TRK\n";
+                    if (Program.addFcuMode)
+                    {
+                        if (isModeHdgVs)
+                            result = "HDG\n";
+                        else
+                            result = "TRK\n";
+                    }
 
                     bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
 
@@ -343,13 +359,21 @@ namespace PilotsDeck_FNX2PLD
             if (isFcuPowered)
             {
                 if (isLightTest)
-                    result = "888\n+8888";
+                {
+                    if (Program.addFcuMode)
+                        result = "888\n+8888";
+                    else
+                        result = "+8888";
+                }
                 else
                 {
-                    if (isModeHdgVs)
-                        result = "V/S\n";
-                    else
-                        result = "FPA\n";
+                    if (Program.addFcuMode)
+                    {
+                        if (isModeHdgVs)
+                            result = "V/S\n";
+                        else
+                            result = "FPA\n";
+                    }
 
                     int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
                     if (isAltVs)
@@ -472,6 +496,7 @@ namespace PilotsDeck_FNX2PLD
 
             bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ILS") == 1;
             bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ADF") == 1;
+            bool hfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_HF1") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_HF2") == 1;
 
             if (!Program.rawValues)
             {
@@ -501,6 +526,18 @@ namespace PilotsDeck_FNX2PLD
 
                     if (valueStandby > 0)
                         IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueStandby / 100.0f).Replace(' ', '0'));
+                    else
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                }
+                else if (hfMode)
+                {
+                    if (valueActive > 0)
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueActive / 1000.0f).Replace(' ', '0'));
+                    else
+                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+
+                    if (valueStandby > 0)
+                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueStandby / 1000.0f).Replace(' ', '0'));
                     else
                         IPCOffsets[$"com{com}StandbyStr"].SetValue("");
                 }

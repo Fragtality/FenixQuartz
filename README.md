@@ -25,18 +25,19 @@ The Memory Scan usually takes about one Second and the time it takes for an Upda
 <br/>
 
 # Usage with other 3rd Party Tools
-The Binary offers a Raw-Value-Mode since Version 0.6. In that Mode, the Display-Values for the FCU (Speed, Heading, Altitude, Vertical Speed) are exported directly as Numeric Values to FSUIPC Offsets (instead of a preformatted String for PilotsDeck / StreamDeck). That way the Binary can be used with 3rd Party Tools to build a working FCU (like Spad or MobiFlight for Example)!<br/>
-Besides the displayed Value it also exports the "is Dashed" State of that Display. The State of the Dot ("is Managed") can directly be read from the Fenix Lvars (I_FCU_SPEED_MANAGED, I_FCU_HEADING_MANAGED, I_FCU_ALTITUDE_MANAGED). So with any Client capable of reading FSUIPC-Offsets and Lvars, you have all the Information to build an accurate working FCU!<br/>
-To enable that Mode, set *rawValues* in the Config-File to true. Size, Type and Addresses of the Offsets can be found in the Logs when the Binary is started and is connected to MSFS/Fenix. The Order and Addresses will stay the same (unless the Offset-Base is changed in the Config-File).<br/>
+The Binary normally exports the Display-Values as formatted Strings for drawing them directly on the StreamDeck. You can customize the Output for your Software/Hardware with the *altScaleDelim* or *addFcuMode* Options in the Config-File.<br/>
+But if handling numeric Values is easier for your Software/Hardware Combination, you can enable the Raw-Value-Mode which is available since Version 0.6. In that Mode, the Display-Values for the FCU (Speed, Heading, Altitude, Vertical Speed) are exported directly as Numeric Values to FSUIPC Offsets. But then you have to implement the Logic yourself regarding dashed / managed for example and the Format (leading Zeros).<br/>
+Besides the displayed Value it also exports the "is Dashed" State of that Display (regardless of Mode). The State of the Dot ("is Managed") can directly be read from the Fenix Lvars (I_FCU_SPEED_MANAGED, I_FCU_HEADING_MANAGED, I_FCU_ALTITUDE_MANAGED). So with any Client capable of reading FSUIPC-Offsets and Lvars, you have all the Information to build an accurate working FCU!<br/>
+To enable the Raw-Value-Mode, set *rawValues* in the Config-File to true. Size, Type and Addresses of the Offsets can be found in the Logs when the Binary is started and is connected to MSFS/Fenix. The Order and Addresses will stay the same (unless the Offset-Base is changed in the Config-File).<br/>
 Please mind that the Default is false, so you have to re-enable it after an Update of the Binary!
 <br/>
 
 # Configuration
 You can configure some Parameters in the PilotsDeck_FNX2PLD.dll.config File:
-- **waitForConnect**: When *true*, the Binary will wait until the Sim is running and FSUIPC is connected. Default: *false*
-- **offsetBase**: The first (FSUIPC) Offset Address to use (hexadecimal). Default: *0x5408*
-- **rawValues**: When *true*, the FCU Values are exported directly as numeric Values. Default: *false*
-- **updateIntervall**: The time between each Update in Milliseconds. Default: *50*
-- **altScaleDelim**: The Character to be inserted in the FCU Altitude String when the Scale is set to 100. Default: *" "* (Space)
-
+- **waitForConnect**: When *true*, the Binary will wait until the Sim is running and FSUIPC is connected. Default: *"false"*
+- **offsetBase**: The first (FSUIPC) Offset Address to use (hexadecimal). Default: *"0x5408"*
+- **rawValues**: When *true*, the FCU Values are exported directly as numeric Values ("Raw-Value-Mode"). Default: *"false"*
+- **updateIntervall**: The time between each Update in Milliseconds. Default: *"50"*
+- **altScaleDelim**: The Character to be inserted in the FCU Altitude String when the Scale is set to 100. Has no Effect on the Raw-Value-Mode. Default: *" "* (Space)
+- **addFcuMode**: If false, the FCUs Displays show only the Value (no SPD/HDG/VS) in one line (Still as String, has no Effect on the Raw-Value-Mode). Default: *"true"*
 

@@ -18,6 +18,8 @@ namespace PilotsDeck_FNX2PLD
         public static readonly bool rawValues = Convert.ToBoolean(ConfigurationManager.AppSettings["rawValues"]);
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
         public static readonly string altScaleDelim = Convert.ToString(ConfigurationManager.AppSettings["altScaleDelim"]) ?? " ";
+        public static readonly bool addFcuMode = Convert.ToBoolean(ConfigurationManager.AppSettings["addFcuMode"]);
+        
         public static readonly string groupName = "FNX2PLD";
 
         private static MemoryScanner? scanner = null;
