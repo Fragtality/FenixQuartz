@@ -4,14 +4,14 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <ApplicationIcon>PluginIcon.ico</ApplicationIcon>
     <IsPublishable>True</IsPublishable>
     <PlatformTarget>x64</PlatformTarget>
     <SignAssembly>False</SignAssembly>
-    <AssemblyVersion>0.8</AssemblyVersion>
-    <FileVersion>0.8</FileVersion>
-    <Version>0.8</Version>
+    <AssemblyVersion>0.9</AssemblyVersion>
+    <FileVersion>0.9</FileVersion>
+    <Version>0.9</Version>
     <Copyright>Fragtality © 2023</Copyright>
     <Authors>Fragtality</Authors>
   </PropertyGroup>
@@ -29,18 +29,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSUIPCClientDLL" Version="3.3.2" />
+    <PackageReference Include="FSUIPCClientDLL" Version="3.3.3" />
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="FSUIPC_WAPID.dll">
+    <Reference Include="Microsoft.FlightSimulator.SimConnect">
+      <HintPath>Microsoft.FlightSimulator.SimConnect.dll</HintPath>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Reference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PublishReadyToRunExclude Include="Microsoft.FlightSimulator.SimConnect.dll" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Microsoft.FlightSimulator.SimConnect.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+	<None Update="SimConnect.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
   </ItemGroup>
-
+  
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="powershell -ExecutionPolicy Unrestricted -file &quot;$(ProjectDir)CopyToMSFS.ps1&quot; $(ConfigurationName)" />
   </Target>

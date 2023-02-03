@@ -13,7 +13,7 @@ namespace PilotsDeck_FNX2PLD
         public string TypeName { get; set; } = "int";
         public bool CastInteger { get; set; } = false;
 
-        private byte[]? valueBuffer = null;
+        private byte[] valueBuffer = null;
 
         public MemoryValue(string id, MemoryPattern pattern, long patternOffset, int size, string typeName, bool castInteger = false)
         {
@@ -68,7 +68,7 @@ namespace PilotsDeck_FNX2PLD
             return false;
         }
 
-        public virtual dynamic? GetValue()
+        public virtual dynamic GetValue()
         {
             try
             {
@@ -102,6 +102,7 @@ namespace PilotsDeck_FNX2PLD
         public void Dispose()
         {
             valueBuffer = null;
+            GC.SuppressFinalize(this);
         }
     }
 }

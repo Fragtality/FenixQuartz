@@ -1,9 +1,12 @@
 ﻿using FSUIPC;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace PilotsDeck_FNX2PLD
@@ -16,17 +19,19 @@ namespace PilotsDeck_FNX2PLD
         public static readonly bool waitForConnect = Convert.ToBoolean(ConfigurationManager.AppSettings["waitForConnect"]);
         public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
         public static readonly bool rawValues = Convert.ToBoolean(ConfigurationManager.AppSettings["rawValues"]);
+        public static readonly bool useLvars = Convert.ToBoolean(ConfigurationManager.AppSettings["useLvars"]);
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
         public static readonly string altScaleDelim = Convert.ToString(ConfigurationManager.AppSettings["altScaleDelim"]) ?? " ";
         public static readonly bool addFcuMode = Convert.ToBoolean(ConfigurationManager.AppSettings["addFcuMode"]);
         
         public static readonly string groupName = "FNX2PLD";
+        public static readonly string lvarPrefix = "FNX2PLD_";
 
-        private static MemoryScanner? scanner = null;
-        private static ElementManager? elementManager = null;
+        private static MemoryScanner scanner = null;
+        private static ElementManager elementManager = null;
         private static bool cancelRequested = false;
         private static CancellationToken cancellationToken;
-        private static bool wasmInitialized = false;
+        public static List<OutputDefinition> Definitions = null;
 
 
         public static void Main()
@@ -45,6 +50,8 @@ namespace PilotsDeck_FNX2PLD
                         
             try
             {
+                WriteAssignmentFile();
+
                 CancellationTokenSource cancellationTokenSource = new();
                 cancellationToken = cancellationTokenSource.Token;
 
@@ -109,9 +116,10 @@ namespace PilotsDeck_FNX2PLD
         {
             try
             {
+                IPCManager.SimConnect?.Disconnect();
+                IPCManager.SimConnect = null;
                 scanner = null;
-                if (elementManager != null)
-                    elementManager.Dispose();
+                elementManager?.Dispose();
                 elementManager = null;
             }
             catch
@@ -130,7 +138,7 @@ namespace PilotsDeck_FNX2PLD
         {
             try
             {
-                Process? fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
+                Process fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
                 if (fenixProc != null)
                 {
                     scanner = new MemoryScanner(fenixProc);
@@ -138,12 +146,6 @@ namespace PilotsDeck_FNX2PLD
                 else
                 {
                     Log.Logger.Error($"InitializeSession: Fenix Process is null!");
-                    return false;
-                }
-
-                if (!InitWASM())
-                {
-                    Log.Logger.Error($"InitializeSession: Intialization of WASM failed!");
                     return false;
                 }
 
@@ -159,21 +161,6 @@ namespace PilotsDeck_FNX2PLD
             }
         }
 
-        private static bool InitWASM()
-        {
-            if (!wasmInitialized)
-            {
-                IPCManager.InitWASM();
-                wasmInitialized = true;
-            }
-            else
-            {
-                MSFSVariableServices.Start();
-            }
-
-            return MSFSVariableServices.IsRunning;
-        }
-
         private static void MainLoop()
         {
             if (scanner == null || elementManager == null)
@@ -181,13 +168,13 @@ namespace PilotsDeck_FNX2PLD
 
             elementManager.PrintReport();
             //Main Loop
-            Stopwatch watch = new Stopwatch();
+            Stopwatch watch = new();
             int measures = 0;
-            int averageTick = 150;
+            int averageTick = 300;
 
             try
             {
-                while (!cancellationToken.IsCancellationRequested && IPCManager.IsProcessRunning(FenixExecutable))
+                while (!cancellationToken.IsCancellationRequested && IPCManager.IsProcessRunning(FenixExecutable) && IPCManager.IsSimRunning())
                 {
                     watch.Start();
 
@@ -203,9 +190,6 @@ namespace PilotsDeck_FNX2PLD
                     if (measures > averageTick)
                     {
                         Log.Logger.Debug($"MainLoop: -------------------------------- Average elapsed Time for Reading and Updating Buffers: {string.Format("{0,3:F}", (watch.Elapsed.TotalMilliseconds) / averageTick)}ms --------------------------------");
-                        Log.Logger.Debug($"rudderDisplay1: {elementManager.MemoryValues["rudderDisplay1"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay1"].IsTinyValue()})");
-                        Log.Logger.Debug($"rudderDisplay2: {elementManager.MemoryValues["rudderDisplay2"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay2"].IsTinyValue()})");
-                        Log.Logger.Debug($"rudderDisplay3: {elementManager.MemoryValues["rudderDisplay3"].GetValue()} (Tiny: {elementManager.MemoryValues["rudderDisplay3"].IsTinyValue()})");
                         measures = 0;
                         watch.Reset();
                     }
@@ -219,6 +203,19 @@ namespace PilotsDeck_FNX2PLD
             {
                 Log.Logger.Error($"Program: Critical Exception during MainLoop()");
             }
+        }
+
+        public static void WriteAssignmentFile()
+        {
+            Definitions = OutputDefinition.CreateDefinitions();
+            StringBuilder output = new();
+
+            foreach(var value in Definitions)
+            {
+                output.AppendLine(value.ToString());
+            }
+
+            File.WriteAllText("Assignments.txt", output.ToString());
         }
     }
 }

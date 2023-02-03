@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Usage", "CA2211:Nicht konstante Felder dürfen nicht sichtbar sein")]
+[assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:PilotsDeck_FNX2PLD.MobiSimConnect.SimConnect_OnException(Microsoft.FlightSimulator.SimConnect.SimConnect,Microsoft.FlightSimulator.SimConnect.SIMCONNECT_RECV_EXCEPTION)")]

@@ -12,6 +12,8 @@ namespace PilotsDeck_FNX2PLD
         public static Offset readytofly = new Offset<byte>(Program.groupName, 0x026D);
         public static readonly int waitDuration = 30000;
 
+        public static MobiSimConnect SimConnect { get; set; } = null;
+
         public static bool WaitForSimulator(CancellationToken cancellationToken)
         {
             bool simRunning = IsSimRunning();
@@ -40,7 +42,7 @@ namespace PilotsDeck_FNX2PLD
 
         public static bool IsProcessRunning(string name)
         {
-            Process? proc = Process.GetProcessesByName(name).FirstOrDefault();
+            Process proc = Process.GetProcessesByName(name).FirstOrDefault();
             return proc != null;
         }
 
@@ -179,16 +181,21 @@ namespace PilotsDeck_FNX2PLD
             if (!IsSimRunning())
                 return false;
 
+            SimConnect = new MobiSimConnect();
+            bool mobiRequested = SimConnect.Connect();
+
             bool isRunning = IsProcessRunning(Program.FenixExecutable);
-            if (!isRunning)
+            if (!isRunning || !SimConnect.IsConnected)
             {
                 do
                 {
                     Log.Logger.Information($"WaitForFenixBinary: {Program.FenixExecutable} is not running - waiting {waitDuration / 2 / 1000}s for Retry");
                     Thread.Sleep(waitDuration / 2);
+                    if (!mobiRequested)
+                        mobiRequested = SimConnect.Connect();
                     isRunning = IsProcessRunning(Program.FenixExecutable);
                 }
-                while (!isRunning && IsAircraftFenix() && IsSimRunning() && !cancellationToken.IsCancellationRequested);
+                while ((!isRunning || !SimConnect.IsConnected) && IsAircraftFenix() && IsSimRunning() && !cancellationToken.IsCancellationRequested);
 
                 return isRunning && IsSimRunning();
             }
@@ -234,6 +241,12 @@ namespace PilotsDeck_FNX2PLD
         {
             try
             {
+                if (SimConnect != null)
+                {
+                    SimConnect.Disconnect();
+                    SimConnect = null;
+                }
+
                 if (FSUIPCConnection.IsOpen)
                     FSUIPCConnection.Close();
             }
@@ -242,39 +255,11 @@ namespace PilotsDeck_FNX2PLD
                 Log.Logger.Information($"IPCManager: FSUIPC Connection closed");
             else
                 Log.Logger.Warning($"IPCManager: FSUIPC still open!");
-
-            try
-            {
-                if (MSFSVariableServices.IsRunning)
-                    MSFSVariableServices.Stop();
-            }
-            catch { }
         }
 
-        public static bool InitWASM()
+        public static float ReadLVar(string name)
         {
-            Log.Information($"IPCManager: Initializing WASM Module");
-            MSFSVariableServices.Init();
-            MSFSVariableServices.LVARUpdateFrequency = 0;
-            MSFSVariableServices.LogLevel = LOGLEVEL.LOG_LEVEL_INFO;
-            MSFSVariableServices.Start();
-            if (!MSFSVariableServices.IsRunning)
-            {
-                Log.Error($"IPCManager: WASM Module is not running!");
-                return false;
-            }
-            else
-                return true;
-        }
-
-        public static double ReadLVar(string name)
-        {
-            double result = 0;
-
-            if (MSFSVariableServices.LVars.Exists(name))
-                result = MSFSVariableServices.LVars[name].Value;
-
-            return result;
+            return SimConnect.ReadLvar(name);
         }
 
 

@@ -3,7 +3,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
 
 namespace PilotsDeck_FNX2PLD
 {
@@ -12,19 +11,18 @@ namespace PilotsDeck_FNX2PLD
         public Dictionary<string, MemoryPattern> MemoryPatterns;
         public Dictionary<string, MemoryValue> MemoryValues;
 
-        private Dictionary<string, IPCOffset> IPCOffsets;
-        private int nextOffset = Program.offsetBase;
-        private static NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
+        protected Dictionary<string, IPCValue> IPCValues;
+        public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
 
-        private double lastSwitchVS;
-        private bool isAltVs = false;
-        private double lastSwitchAlt;
+        private float lastSwitchVS;
+        private float lastSwitchAlt;
+        private bool isAltVsMode = false;
         private bool isLightTest = false;
 
         public ElementManager()
         {
-            IPCOffsets = new ();
+            IPCValues = new ();
             MemoryValues = new ();
 
             //// MEMORY PATTERNS
@@ -83,81 +81,48 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
 
 
-            //// IPC VALUES - StreamDeck
+            //// STRING VALUES - StreamDeck
             if (!Program.rawValues)
             {
-                //FCU
-                AddIpcOffset("fcuSpdStr", "string", 10);
-                AddIpcOffset("fcuHdgStr", "string", 9);
-                AddIpcOffset("fcuAltStr", "string", 7);
-                AddIpcOffset("fcuVsStr", "string", 10);
-
-                //ISIS
-                AddIpcOffset("isisStr", "string", 6);
-
-                //COM1 standby
-                AddIpcOffset("com1StandbyStr", "string", 8);
-
-                //XPDR
-                AddIpcOffset("xpdrStr", "string", 5);
-
-                //BAT1
-                AddIpcOffset("bat1Str", "string", 5);
-
-                //BAT2
-                AddIpcOffset("bat2Str", "string", 5);
-
-                //RUDDER
-                AddIpcOffset("rudderStr", "string", 6);
-
-                //VS Selected
-                AddIpcOffset("isAltVs", "string", 2);
-
-                //COM1 active
-                AddIpcOffset("com1ActiveStr", "string", 8);
-
-                //COM2
-                AddIpcOffset("com2StandbyStr", "string", 8);
-                AddIpcOffset("com2ActiveStr", "string", 8);
+                foreach (var def in Program.Definitions)
+                    AddIpcOffset(def.ID, def.Type, def.Size, def.Offset);
             }
-            //// IPC VALUES - Raw Mode
+            //// RAW VALUES (Offset)
+            else if (!Program.useLvars)
+            {
+                foreach (var def in Program.Definitions)
+                    AddIpcOffset(def.ID, def.Type, def.Size, def.Offset);
+            }
+            //// RAW VALUES (L-Var)
             else
             {
-                //FCU
-                AddIpcOffset("fcuSpd", "float", 4);
-                AddIpcOffset("fcuHdg", "int", 4);
-                AddIpcOffset("fcuAlt", "int", 4);
-                AddIpcOffset("fcuVs", "float", 4);
-
-                //ISIS
-                AddIpcOffset("isisStd", "byte", 1);
-                AddIpcOffset("isisBaro", "float", 4);
-
-                //COM1
-                AddIpcOffset("com1Active", "int", 4);
-                AddIpcOffset("com1Standby", "int", 4);
-
-                //XPDR
-                AddIpcOffset("xpdr", "short", 2);
-
-                //BAT1
-                AddIpcOffset("bat1", "float", 4);
-
-                //BAT2
-                AddIpcOffset("bat2", "float", 4);
-
-                //RUDDER
-                AddIpcOffset("rudder", "float", 4);
-
-                //FCU Dashes
-                AddIpcOffset("fcuSpdDashed", "byte", 1);
-                AddIpcOffset("fcuHdgDashed", "byte", 1);
-                AddIpcOffset("fcuVsDashed", "byte", 1);
-
-                //COM2
-                AddIpcOffset("com2Active", "int", 4);
-                AddIpcOffset("com2Standby", "int", 4);
+                foreach (var def in Program.Definitions)
+                    AddIpcLvar(def.ID);
             }
+
+            IPCManager.SimConnect.SubscribeLvar("S_OH_IN_LT_ANN_LT");
+            IPCManager.SimConnect.SubscribeLvar("S_FCU_VERTICAL_SPEED");
+            IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE");
+            IPCManager.SimConnect.SubscribeLvar("E_FCU_VS");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_TRACK_FPA_MODE");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_VS_MODE");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_SPEED_MODE");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_MANAGED");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_ALTITUDE_MANAGED");
+            IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE_SCALE");
+            IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_MODE");
+            string com = "1";
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ADF");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF1");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF2");
+            com = "2";
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ADF");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF1");
+            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF2");
         }
 
         private void AddMemoryValue(string id, MemoryPattern pattern, long offset, int size, string type, bool castInt = false)
@@ -165,20 +130,28 @@ namespace PilotsDeck_FNX2PLD
             MemoryValues.Add(id, new MemoryValue(id, pattern, offset, size, type, castInt));
         }
 
-        private void AddIpcOffset(string id, string type, int size)
+        private void AddIpcOffset(string id, string type, int size, int offset)
         {
-            IPCOffsets.Add(id, new IPCOffset(id, nextOffset, type, size));
-            nextOffset += size;
+            IPCValues.Add(id, new IPCValueOffset(id, offset, type, size));
+        }
+
+        private void AddIpcLvar(string id)
+        {
+            IPCValues.Add(id, new IPCValueLvar(id));
         }
 
         public void Dispose()
         {
-            foreach (var offset in IPCOffsets.Values)
+            foreach (var value in IPCValues.Values)
             {
-                if (offset != null && offset.Offset != null)
-                    offset.Offset.Disconnect();
+                if (value is IPCValueOffset)
+                    (value as IPCValueOffset).Offset.Disconnect();                    
             }
-            IPCOffsets.Clear();
+
+            if (IPCManager.SimConnect != null && IPCManager.SimConnect.IsConnected)
+                IPCManager.SimConnect.UnsubscribeAll();
+
+            IPCValues.Clear();
 
             foreach (var value in MemoryValues.Values)
             {
@@ -186,17 +159,12 @@ namespace PilotsDeck_FNX2PLD
             }
             MemoryValues.Clear();
             MemoryPatterns.Clear();
+
+            GC.SuppressFinalize(this);
         }
 
         public void GenerateValues()
         {
-            if (firstUpdate)
-            {
-                Log.Information($"ElementManager: First Update - Reloading WASM to get all Lvars");
-                MSFSVariableServices.Reload();
-                firstUpdate = false;
-                Thread.Sleep(100);
-            }
             isLightTest = IPCManager.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
 
             UpdateFMA();
@@ -209,27 +177,41 @@ namespace PilotsDeck_FNX2PLD
             UpdateRudder();
 
             FSUIPCConnection.Process(Program.groupName);
+            if (firstUpdate)
+            {
+                firstUpdate = false;
+            }
         }
 
         private void UpdateFMA()
         {
-            double switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
+            float switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
             if (switchVS != lastSwitchVS)
-                isAltVs = true;
+            {
+                isAltVsMode = true;
+            }
             lastSwitchVS = switchVS;
 
-            double switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
-
-            if (switchAlt != lastSwitchAlt)
-                isAltVs = false;
+            float switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
+            if (switchAlt != lastSwitchAlt || MemoryValues["fcuVsDashed"].GetValue())
+            {
+                isAltVsMode = false;
+            }
             lastSwitchAlt = switchAlt;
 
             if (!Program.rawValues)
             {
-                if (isAltVs)
-                    IPCOffsets["isAltVs"].SetValue("1");
+                if (isAltVsMode)
+                    IPCValues["isAltVs"].SetValue("1");
                 else
-                    IPCOffsets["isAltVs"].SetValue("0");
+                    IPCValues["isAltVs"].SetValue("0");
+            }
+            else
+            {
+                if (isAltVsMode)
+                    IPCValues["isAltVs"].SetValue((byte)1);
+                else
+                    IPCValues["isAltVs"].SetValue((byte)0);
             }
         }
 
@@ -291,7 +273,7 @@ namespace PilotsDeck_FNX2PLD
                     }
                 }
             }
-            IPCOffsets["fcuSpdStr"].SetValue(result);
+            IPCValues["fcuSpdStr"].SetValue(result);
 
             //HDG
             result = "";
@@ -335,7 +317,7 @@ namespace PilotsDeck_FNX2PLD
                     }
                 }
             }
-            IPCOffsets["fcuHdgStr"].SetValue(result);
+            IPCValues["fcuHdgStr"].SetValue(result);
 
             //ALT
             result = "";
@@ -352,7 +334,7 @@ namespace PilotsDeck_FNX2PLD
                         result += "*";
                 }
             }
-            IPCOffsets["fcuAltStr"].SetValue(result);
+            IPCValues["fcuAltStr"].SetValue(result);
 
             //VS
             result = "";
@@ -376,7 +358,7 @@ namespace PilotsDeck_FNX2PLD
                     }
 
                     int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-                    if (isAltVs)
+                    if (isAltVsMode)
                         vs = MemoryValues["fcuVs"].GetValue() ?? 0;
 
                     if (MemoryValues["fcuVsDashed"].GetValue())
@@ -398,7 +380,7 @@ namespace PilotsDeck_FNX2PLD
                     }
                 }
             }
-            IPCOffsets["fcuVsStr"].SetValue(result);
+            IPCValues["fcuVsStr"].SetValue(result);
         }
 
         private void UpdateRawFCU()
@@ -412,11 +394,11 @@ namespace PilotsDeck_FNX2PLD
             else
                 fvalue = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
 
-            IPCOffsets["fcuSpd"].SetValue(fvalue);
+            IPCValues["fcuSpd"].SetValue(fvalue);
             if (MemoryValues["fcuSpdDashed"].GetValue())
-                IPCOffsets["fcuSpdDashed"].SetValue((byte)1);
+                IPCValues["fcuSpdDashed"].SetValue((byte)1);
             else
-                IPCOffsets["fcuSpdDashed"].SetValue((byte)0);
+                IPCValues["fcuSpdDashed"].SetValue((byte)0);
 
             //HDG
             bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
@@ -428,30 +410,35 @@ namespace PilotsDeck_FNX2PLD
             if (isHdgManaged && !isHdgDashed && hdgMng != 0)
                 ivalue = hdgMng;
 
-            IPCOffsets["fcuHdg"].SetValue(ivalue);
+            IPCValues["fcuHdg"].SetValue(ivalue);
             if (MemoryValues["fcuHdgDashed"].GetValue())
-                IPCOffsets["fcuHdgDashed"].SetValue((byte)1);
+                IPCValues["fcuHdgDashed"].SetValue((byte)1);
             else
-                IPCOffsets["fcuHdgDashed"].SetValue((byte)0);
+                IPCValues["fcuHdgDashed"].SetValue((byte)0);
 
 
             //ALT
-            IPCOffsets["fcuAlt"].SetValue((int)(MemoryValues["fcuAlt"].GetValue() ?? 100));
+            IPCValues["fcuAlt"].SetValue((int)(MemoryValues["fcuAlt"].GetValue() ?? 100));
 
             //VS
             bool isModeHdgVs = IPCManager.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
 
             float vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-            if (isAltVs)
-                vs = MemoryValues["fcuVs"].GetValue() ?? 0;
-            if (!isModeHdgVs)
-                vs /= 1000.0f;
-
-            IPCOffsets["fcuVs"].SetValue(vs);
-            if (MemoryValues["fcuVsDashed"].GetValue())
-                IPCOffsets["fcuVsDashed"].SetValue((byte)1);
+            if (!MemoryValues["fcuVsDashed"].GetValue())
+            {
+                if (isAltVsMode)
+                    vs = MemoryValues["fcuVs"].GetValue() ?? 0;
+                if (!isModeHdgVs)
+                    vs = (float)Math.Round(vs / 1000.0f, 1);
+            }
             else
-                IPCOffsets["fcuVsDashed"].SetValue((byte)0);
+                vs = 0.0f;
+
+            IPCValues["fcuVs"].SetValue(vs);
+            if (MemoryValues["fcuVsDashed"].GetValue())
+                IPCValues["fcuVsDashed"].SetValue((byte)1);
+            else
+                IPCValues["fcuVsDashed"].SetValue((byte)0);
 
         }
 
@@ -479,13 +466,13 @@ namespace PilotsDeck_FNX2PLD
                     }
                 }
 
-                IPCOffsets["isisStr"].SetValue(result);
+                IPCValues["isisStr"].SetValue(result);
             }
             else
             {
                 byte value = (bool)MemoryValues["isisStd"].GetValue()? (byte)1 : (byte)0;
-                IPCOffsets["isisStd"].SetValue(value);
-                IPCOffsets["isisBaro"].SetValue((float)MemoryValues["isisBaro"].GetValue());
+                IPCValues["isisStd"].SetValue(value);
+                IPCValues["isisBaro"].SetValue((float)MemoryValues["isisBaro"].GetValue());
             }
         }
 
@@ -504,62 +491,62 @@ namespace PilotsDeck_FNX2PLD
                 {
                     if (valueActive > 0)
                     {
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
+                        IPCValues[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
                         if (valueStandby < 360)
-                            IPCOffsets[$"com{com}StandbyStr"].SetValue("C-" + string.Format(new CultureInfo("en-US"), "{0,3:F0}", valueStandby).Replace(' ','0'));
+                            IPCValues[$"com{com}StandbyStr"].SetValue("C-" + string.Format(new CultureInfo("en-US"), "{0,3:F0}", valueStandby).Replace(' ','0'));
                         else
-                            IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
+                            IPCValues[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
                     }
                     else
                     {
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                        IPCValues[$"com{com}ActiveStr"].SetValue("");
+                        IPCValues[$"com{com}StandbyStr"].SetValue("");
                     }
 
                 }
                 else if (adfMode)
                 {
                     if (valueActive > 0)
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueActive / 100.0f).Replace(' ', '0'));
+                        IPCValues[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueActive / 100.0f).Replace(' ', '0'));
                     else
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+                        IPCValues[$"com{com}ActiveStr"].SetValue("");
 
                     if (valueStandby > 0)
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueStandby / 100.0f).Replace(' ', '0'));
+                        IPCValues[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,4:F1}", valueStandby / 100.0f).Replace(' ', '0'));
                     else
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                        IPCValues[$"com{com}StandbyStr"].SetValue("");
                 }
                 else if (hfMode)
                 {
                     if (valueActive > 0)
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueActive / 1000.0f).Replace(' ', '0'));
+                        IPCValues[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueActive / 1000.0f).Replace(' ', '0'));
                     else
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+                        IPCValues[$"com{com}ActiveStr"].SetValue("");
 
                     if (valueStandby > 0)
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueStandby / 1000.0f).Replace(' ', '0'));
+                        IPCValues[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0,7:F3}", valueStandby / 1000.0f).Replace(' ', '0'));
                     else
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                        IPCValues[$"com{com}StandbyStr"].SetValue("");
                 }
                 else
                 {
                     if (valueActive == 118000)
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue("dAtA");
+                        IPCValues[$"com{com}ActiveStr"].SetValue("dAtA");
                     else if (valueActive > 0)
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
+                        IPCValues[$"com{com}ActiveStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueActive / 1000.0f));
                     else
-                        IPCOffsets[$"com{com}ActiveStr"].SetValue("");
+                        IPCValues[$"com{com}ActiveStr"].SetValue("");
 
                     if (valueStandby > 0)
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
+                        IPCValues[$"com{com}StandbyStr"].SetValue(string.Format(new CultureInfo("en-US"), "{0:F3}", valueStandby / 1000.0f));
                     else
-                        IPCOffsets[$"com{com}StandbyStr"].SetValue("");
+                        IPCValues[$"com{com}StandbyStr"].SetValue("");
                 }
             }
             else
             {
-                IPCOffsets[$"com{com}Active"].SetValue(valueActive);
-                IPCOffsets[$"com{com}Standby"].SetValue(valueStandby);
+                IPCValues[$"com{com}Active"].SetValue(valueActive);
+                IPCValues[$"com{com}Standby"].SetValue(valueStandby);
             }
         }
 
@@ -587,14 +574,14 @@ namespace PilotsDeck_FNX2PLD
             }
 
             if (!Program.rawValues)
-                IPCOffsets["xpdrStr"].SetValue(result);
+                IPCValues["xpdrStr"].SetValue(result);
             else
             {
                 if (short.TryParse(result, out short shortValue))
-                    IPCOffsets["xpdr"].SetValue(shortValue);
+                    IPCValues["xpdr"].SetValue(shortValue);
                 else
                 {
-                    IPCOffsets["xpdr"].SetValue((short)0);
+                    IPCValues["xpdr"].SetValue((short)0);
                 }
             }
         }
@@ -603,18 +590,18 @@ namespace PilotsDeck_FNX2PLD
         {
             double value = MemoryValues["bat1Display"].GetValue() ?? 0.0;
             if (!Program.rawValues)
-                IPCOffsets["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
+                IPCValues["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
             else
-                IPCOffsets["bat1"].SetValue((float)Math.Round(value,1));
+                IPCValues["bat1"].SetValue((float)Math.Round(value,1));
 
             value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
 
             if (value != 0)
             {
                 if (!Program.rawValues)
-                    IPCOffsets["bat2Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
+                    IPCValues["bat2Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
                 else
-                    IPCOffsets["bat2"].SetValue((float)Math.Round(value,1));
+                    IPCValues["bat2"].SetValue((float)Math.Round(value,1));
             }
         }
 
@@ -641,11 +628,11 @@ namespace PilotsDeck_FNX2PLD
                     result = " " + space;
                 result += string.Format(formatInfo, "{0:F1}", Math.Abs(value));
 
-                IPCOffsets["rudderStr"].SetValue(result);
+                IPCValues["rudderStr"].SetValue(result);
             }
             else
             {
-                IPCOffsets["rudder"].SetValue((float)Math.Round(value, 1));
+                IPCValues["rudder"].SetValue((float)Math.Round(value, 1));
             }
         }
 
@@ -655,21 +642,6 @@ namespace PilotsDeck_FNX2PLD
             {
                 ulong location = MemoryScanner.CalculateLocation(value.Pattern.Location, value.PatternOffset);
                 Log.Information($"ElementManager: MemoryValue <{value.ID}> is at Address 0x{location:X} ({location:d})");
-            }
-
-            if (Program.rawValues)
-            {
-                foreach (var offset in IPCOffsets.Values)
-                {
-                    Log.Information($"ElementManager: FSUIPC Offset <{offset.ID}> is at Address 0x{offset.Offset.Address:X} (Type: {offset.Type}, Size: {offset.Size})");
-                }
-            }
-            else
-            {
-                foreach (var offset in IPCOffsets.Values)
-                {
-                    Log.Information($"ElementManager: FSUIPC Offset <{offset.ID}> is at Address 0x{offset.Offset.Address:X}:{offset.Size}:s");
-                }
             }
         }
     }
