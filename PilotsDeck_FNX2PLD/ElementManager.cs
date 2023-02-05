@@ -107,6 +107,7 @@ namespace PilotsDeck_FNX2PLD
             IPCManager.SimConnect.SubscribeLvar("I_FCU_TRACK_FPA_MODE");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_VS_MODE");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_SPEED_MODE");
+            IPCManager.SimConnect.SubscribeLvar("I_FCU_SPEED_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_ALTITUDE_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE_SCALE");
@@ -202,16 +203,16 @@ namespace PilotsDeck_FNX2PLD
             if (!Program.rawValues)
             {
                 if (isAltVsMode)
-                    IPCValues["isAltVs"].SetValue("1");
+                    IPCValues["isVsActive"].SetValue("1");
                 else
-                    IPCValues["isAltVs"].SetValue("0");
+                    IPCValues["isVsActive"].SetValue("0");
             }
             else
             {
                 if (isAltVsMode)
-                    IPCValues["isAltVs"].SetValue((byte)1);
+                    IPCValues["isVsActive"].SetValue((byte)1);
                 else
-                    IPCValues["isAltVs"].SetValue((byte)0);
+                    IPCValues["isVsActive"].SetValue((byte)0);
             }
         }
 
@@ -231,7 +232,7 @@ namespace PilotsDeck_FNX2PLD
             bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
             bool isAltManaged = IPCManager.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
             bool isAltHundred = IPCManager.ReadLVar("S_FCU_ALTITUDE_SCALE") == 0;
-
+            
             //SPEED
             string result = "";
             if (isFcuPowered)

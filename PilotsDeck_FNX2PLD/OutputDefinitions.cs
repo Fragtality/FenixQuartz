@@ -67,7 +67,7 @@ namespace PilotsDeck_FNX2PLD
                 definitions.Add(AddIpcOffset("rudderStr", "string", 6, ref nextOffset));
 
                 //VS Selected
-                definitions.Add(AddIpcOffset("isAltVs", "string", 2, ref nextOffset));
+                definitions.Add(AddIpcOffset("isVsActive", "string", 2, ref nextOffset));
 
                 //COM1 active
                 definitions.Add(AddIpcOffset("com1ActiveStr", "string", 8, ref nextOffset));
@@ -115,7 +115,7 @@ namespace PilotsDeck_FNX2PLD
                 definitions.Add(AddIpcOffset("com2Standby", "int", 4, ref nextOffset));
 
                 //VS Selected
-                definitions.Add(AddIpcOffset("isAltVs", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("isVsActive", "byte", 1, ref nextOffset));
             }
             //// RAW VALUES (L-Var)
             else
@@ -125,7 +125,7 @@ namespace PilotsDeck_FNX2PLD
                 definitions.Add(new OutputDefinition("fcuHdg"));
                 definitions.Add(new OutputDefinition("fcuAlt"));
                 definitions.Add(new OutputDefinition("fcuVs"));
-                definitions.Add(new OutputDefinition("isAltVs"));
+                definitions.Add(new OutputDefinition("isVsActive"));
 
                 //FCU Dashes
                 definitions.Add(new OutputDefinition("fcuSpdDashed"));
