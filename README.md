@@ -16,7 +16,7 @@ It is designed to be started (and stopped) by FSUIPC - add this to your ini File
 RunIf1=READY,KILL,X:\PATH\YOU\USED\PilotsDeck_FNX2PLD.exe
 ```
 But you can also start/stop it manually when MSFS is running (finished loading to the Menu)!<br/>
-If you want to start/stop it manually (or Need to restart it), I provided a Powershell-Script [here](https://github.com/Fragtality/PilotsDeck_FNX/blob/master/Restart-PilotsDeckFNX.ps1). You need to change the Path to the Binary in the Script before it can do anything useful.
+If you want to start/stop it manually (or Need to restart it), I provided a Powershell-Script [here](https://github.com/Fragtality/PilotsDeck_FNX/blob/master/Restart-PilotsDeckFNX.ps1). You need to change the Path to the Binary in the Script before it can do anything useful. Don't restart it in Flight unless you really need to!
 <br/><br/>
 
 # Usage
