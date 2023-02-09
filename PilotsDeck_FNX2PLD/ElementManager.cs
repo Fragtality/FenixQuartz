@@ -17,6 +17,8 @@ namespace PilotsDeck_FNX2PLD
 
         private float lastSwitchVS;
         private float lastSwitchAlt;
+        private bool lastVSdashed = false;
+        private bool lastALTmanaged = false;
         private bool isAltVsMode = false;
         private bool isLightTest = false;
 
@@ -31,7 +33,8 @@ namespace PilotsDeck_FNX2PLD
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
+                //{ "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
+                { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) },
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
@@ -186,19 +189,32 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateFMA()
         {
-            float switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
-            if (switchVS != lastSwitchVS)
-            {
-                isAltVsMode = true;
-            }
-            lastSwitchVS = switchVS;
-
             float switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
-            if (switchAlt != lastSwitchAlt || MemoryValues["fcuVsDashed"].GetValue())
+            bool isDashed = MemoryValues["fcuVsDashed"].GetValue();
+            if (switchAlt != lastSwitchAlt || isDashed)
             {
                 isAltVsMode = false;
+                if (lastVSdashed != isDashed)
+                    Log.Logger.Debug($"Setting isAltVsMode to FALSE (switchAlt != lastSwitchAlt || isDashed)");
             }
             lastSwitchAlt = switchAlt;
+
+            float switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
+            if (switchVS != lastSwitchVS && !firstUpdate)
+            {
+                isAltVsMode = true;
+                Log.Logger.Debug($"Setting isAltVsMode to TRUE (switchVS != lastSwitchVS)");
+            }
+            lastSwitchVS = switchVS;           
+
+            bool altManaged = IPCManager.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
+            if (altManaged != lastALTmanaged && !altManaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
+            {
+                isAltVsMode = true;
+                Log.Logger.Debug($"Setting isAltVsMode to TRUE (altManaged != lastALTmanaged && !altManaged && lastVSdashed != isDashed && !isDashed)");
+            }
+            lastALTmanaged = altManaged;
+            lastVSdashed = isDashed;
 
             if (!Program.rawValues)
             {
@@ -360,7 +376,9 @@ namespace PilotsDeck_FNX2PLD
 
                     int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
                     if (isAltVsMode)
+                    {
                         vs = MemoryValues["fcuVs"].GetValue() ?? 0;
+                    }
 
                     if (MemoryValues["fcuVsDashed"].GetValue())
                         result += "-----";
