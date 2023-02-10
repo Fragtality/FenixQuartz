@@ -45,7 +45,7 @@ namespace PilotsDeck_FNX2PLD
                 //FCU
                 definitions.Add(AddIpcOffset("fcuSpdStr", "string", 10, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuHdgStr", "string", 9, ref nextOffset));
-                definitions.Add(AddIpcOffset("fcuAltStr", "string", 7, ref nextOffset));
+                definitions.Add(AddIpcOffset("fcuAltStr", "string", 8, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuVsStr", "string", 10, ref nextOffset));
 
                 //ISIS

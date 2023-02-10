@@ -16,15 +16,15 @@ It is designed to be started (and stopped) by FSUIPC - add this to your ini File
 RunIf1=READY,KILL,X:\PATH\YOU\USED\PilotsDeck_FNX2PLD.exe
 ```
 But you can also start/stop it manually when MSFS is running (finished loading to the Menu)!<br/>
-If you want to start/stop it manually (or Need to restart it), I provided a Powershell-Script [here](https://github.com/Fragtality/PilotsDeck_FNX/blob/master/Restart-PilotsDeckFNX.ps1). You need to change the Path to the Binary in the Script before it can do anything useful. Don't restart it in Flight unless you really need to!
+If you want to start/stop it manually, you can use the Powershell-Script [here](https://github.com/Fragtality/PilotsDeck_FNX/blob/master/Restart-PilotsDeckFNX.ps1). You need to change the Path to the Binary in the Script before it can do anything useful. BUT: Don't restart it in Flight unless you really need to!
 <br/><br/>
 
 # Usage
 If you want to start the Binary manually and before the Sim is running, set the *waitForConnect* Parameter in the Config-File to true!<br/>
-When it is running (started either automatically or manually) just set up your Flight as you normally would. The Tool will wait in the Background until the Fenix becomes active. It also automatically detects when you have clicked Ready-to-Fly before its intial Scan (the Timer from previous Versions is gone now).<br/>
+When it is running (started either automatically or manually) just set up your Flight as you normally would. The Tool will wait in the Background until the Fenix becomes active. It also automatically detects when you have clicked Ready-to-Fly before its intial Scan (the Timer from previous Versions is gone now). It is best started (manually) when MSFS is in the Main Menu.<br/>
 Note that this Application has no Window - you have to use Task Manager if you want to see if is running. It should close automatically after MSFS is closed (even when started manually with *waitForConnect*).<br/>
 The Memory Scan usually takes about one Second and the time it takes for an Update Cycle is around 0,3ms on average (on my System).<br/><br/>
-Note that this Binary is a Best-Effort-Approach to have working FCU for the Fenix. It is by no means 100% accurate in every possible Situation - I need to guess Things. But it is very accurate in most and normal Flight-Situations (with Flight meaning you are in the Air). So please don't play arround on the Ground, especially with an uninitialized FMGC, and then tell me it is not working correctly - you're using it wrong.<br/>
+Note that this Binary is a Best-Effort-Approach to have working FCU for the Fenix. It is by no means 100% accurate in every possible Situation - I need to guess Things. But it is very accurate in most and normal Flight-Situations (with Flight meaning you are in the Air). So please don't play arround on the Ground, especially with an uninitialized FMGC, and then tell me it is not working correctly :wink:<br/>
 The most "guesswork" is on the VS-Mode, especially in the Transition from (OP) CLB to VS. It should work when you have switched the Vertical Mode via the ALT or VS Knob (in the correct Way of increasing/decreasing it) - it is monitoring these Switches to get the Transition. The Transition into a managed Mode (e.g. from VS to G/S) should work though (since the Display goes dashed and the Value doesn't matter anymore).<br/>
 Also Note that the Binary should not be started/restarted while in Flight - it could miss some Memory-Locations then and the FCU will not function correctly until the Fenix was reloaded!
 <br/><br/>
