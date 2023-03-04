@@ -216,6 +216,7 @@ namespace PilotsDeck_FNX2PLD
             while (IsSimRunning() && OpenSafeFSUIPC() && FSUIPCProcess() && !isReady && !cancellationToken.IsCancellationRequested)
             {
                 Log.Logger.Information($"WaitForSessionReady: Session not ready - waiting {waitDuration / 1000}s for Retry");
+                Log.Logger.Information($"WaitForSessionReady: IsCamReady [{isReady}] readytofly [{readytofly.GetValue<byte>()}]");
                 Thread.Sleep(waitDuration);
                 FSUIPCProcess();
                 isReady = IsCamReady();

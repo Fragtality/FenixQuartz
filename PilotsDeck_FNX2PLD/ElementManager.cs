@@ -1,6 +1,8 @@
 ﻿using FSUIPC;
 using Serilog;
 using System;
+using System.Linq;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -12,8 +14,10 @@ namespace PilotsDeck_FNX2PLD
         public Dictionary<string, MemoryValue> MemoryValues;
 
         protected Dictionary<string, IPCValue> IPCValues;
+        protected MemoryScanner Scanner;
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
+        protected Offset<int> ofActiveFreq;
 
         private float lastSwitchVS;
         private float lastSwitchAlt;
@@ -26,6 +30,7 @@ namespace PilotsDeck_FNX2PLD
         {
             IPCValues = new ();
             MemoryValues = new ();
+            ofActiveFreq = new (Program.groupName, 0x05C4);
 
             //// MEMORY PATTERNS
             MemoryPatterns = new()
@@ -34,12 +39,14 @@ namespace PilotsDeck_FNX2PLD
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
                 { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
-                //{ "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) }, //works on flight restarts if com1-1 does not work
+                { "COM1-2", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) }, //works on flight restarts if com1-1 does not work
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
             };
+
+            InitializeScanner();
 
 
             //// MEMORY VALUES
@@ -63,13 +70,17 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
             AddMemoryValue("com1Active", MemoryPatterns["COM1-1"], -0x24, 4, "int");
 
+            //COM1
+            AddMemoryValue("com1Standby2", MemoryPatterns["COM1-2"], -0xC, 4, "int");
+            AddMemoryValue("com1Active2", MemoryPatterns["COM1-2"], -0x24, 4, "int");
+
             //COM2
             AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
             AddMemoryValue("com2Active", MemoryPatterns["COM1-1"], -0x84, 4, "int");
 
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
-            AddMemoryValue("xpdrInput", MemoryPatterns["XPDR-1"], -0x10C, 2, "int");
+            AddMemoryValue("xpdrInput", MemoryPatterns["XPDR-1"], -0x10C, 2, "int"); // just that?
             AddMemoryValue("xpdrInput2", MemoryPatterns["XPDR-1"], -0x124, 2, "int");
 
             //BAT1
@@ -144,6 +155,22 @@ namespace PilotsDeck_FNX2PLD
             IPCValues.Add(id, new IPCValueLvar(id));
         }
 
+        private void InitializeScanner()
+        {
+            Process fenixProc = Process.GetProcessesByName(Program.FenixExecutable).FirstOrDefault();
+            if (fenixProc != null)
+            {
+                Scanner = new MemoryScanner(fenixProc);
+            }
+            else
+            {
+                throw new NullReferenceException("Fenix Proc is NULL!");
+            }
+
+            Log.Logger.Information($"InitializeScanner: Running Pattern Scan ... (Patterns#: {MemoryPatterns.Count})");
+            Scanner.SearchPatterns(MemoryPatterns.Values.ToList());
+        }
+
         public void Dispose()
         {
             foreach (var value in IPCValues.Values)
@@ -164,26 +191,60 @@ namespace PilotsDeck_FNX2PLD
             MemoryValues.Clear();
             MemoryPatterns.Clear();
 
+            Scanner = null;
+
             GC.SuppressFinalize(this);
         }
 
-        public void GenerateValues()
+        private void CheckAndRescan()
         {
-            isLightTest = IPCManager.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
-
-            UpdateFMA();
-            UpdateFCU();
-            UpdateISIS();
-            UpdateCom("1");
-            UpdateCom("2");
-            UpdateXpdr();
-            UpdateBatteries();
-            UpdateRudder();
-
-            FSUIPCConnection.Process(Program.groupName);
-            if (firstUpdate)
+            int value = MemoryValues["fcuAlt"].GetValue();
+            if (value < 100 || value > 43000)
             {
-                firstUpdate = false;
+                Log.Logger.Information("Memory Locations changed! Rescanning ...");
+                foreach (var pattern in MemoryPatterns.Values)
+                    pattern.Location = 0;
+                InitializeScanner();
+                Scanner.UpdateBuffers(MemoryValues);
+            }
+        }
+
+        public bool GenerateValues()
+        {
+            try
+            {
+                if (!Scanner.UpdateBuffers(MemoryValues))
+                {
+                    Log.Logger.Error($"GenerateValues: UpdateBuffers() failed!");
+                    return false;
+                }
+                CheckAndRescan();
+                                
+                if (!ofActiveFreq.IsConnected)
+                    ofActiveFreq.Reconnect();
+                FSUIPCConnection.Process(Program.groupName);
+
+                isLightTest = IPCManager.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
+                UpdateFMA();
+                UpdateFCU();
+                UpdateISIS();
+                UpdateCom("1");
+                UpdateCom("2");
+                UpdateXpdr();
+                UpdateBatteries();
+                UpdateRudder();
+
+                FSUIPCConnection.Process(Program.groupName);
+                if (firstUpdate)
+                {
+                    firstUpdate = false;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -497,8 +558,21 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateCom(string com)
         {
-            int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
+            //int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
+            //if (valueStandby == 0 && com == "1")
+            //    valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
+            //int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
+            //if (valueActive == 0 && com == "1")
+            //    valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
+
             int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
+            int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
+
+            if (com == "1" && valueActive != (ofActiveFreq.Value / 1000))
+            {
+                valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
+                valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
+            }
 
             bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ILS") == 1;
             bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ADF") == 1;

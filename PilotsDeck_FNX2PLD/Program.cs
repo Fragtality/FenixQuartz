@@ -27,7 +27,7 @@ namespace PilotsDeck_FNX2PLD
         public static readonly string groupName = "FNX2PLD";
         public static readonly string lvarPrefix = "FNX2PLD_";
 
-        private static MemoryScanner scanner = null;
+        //private static MemoryScanner scanner = null;
         private static ElementManager elementManager = null;
         private static bool cancelRequested = false;
         private static CancellationToken cancellationToken;
@@ -118,7 +118,7 @@ namespace PilotsDeck_FNX2PLD
             {
                 IPCManager.SimConnect?.Disconnect();
                 IPCManager.SimConnect = null;
-                scanner = null;
+                //scanner = null;
                 elementManager?.Dispose();
                 elementManager = null;
             }
@@ -138,32 +138,32 @@ namespace PilotsDeck_FNX2PLD
         {
             try
             {
-                Process fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
-                if (fenixProc != null)
-                {
-                    scanner = new MemoryScanner(fenixProc);
-                }
-                else
-                {
-                    Log.Logger.Error($"InitializeSession: Fenix Process is null!");
-                    return false;
-                }
+                //Process fenixProc = Process.GetProcessesByName(FenixExecutable).FirstOrDefault();
+                //if (fenixProc != null)
+                //{
+                //    scanner = new MemoryScanner(fenixProc);
+                //}
+                //else
+                //{
+                //    Log.Logger.Error($"InitializeSession: Fenix Process is null!");
+                //    return false;
+                //}
 
                 elementManager = new ElementManager();
-                scanner.SearchPatterns(elementManager.MemoryPatterns.Values.ToList());
+                //scanner.SearchPatterns(elementManager.MemoryPatterns.Values.ToList());
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                Log.Logger.Error($"InitializeSession: Exception during Intialization!");
+                Log.Logger.Error($"InitializeSession: Exception during Intialization! ({ex.Message})");
                 return false;
             }
         }
 
         private static void MainLoop()
         {
-            if (scanner == null || elementManager == null)
+            if (elementManager == null)
                 throw new ArgumentException("MainLoop: MemoryScanner or ElementManager are null!");
 
             elementManager.PrintReport();
@@ -178,12 +178,17 @@ namespace PilotsDeck_FNX2PLD
                 {
                     watch.Start();
 
-                    if (!scanner.UpdateBuffers(elementManager.MemoryValues))
+                    //if (!scanner.UpdateBuffers(elementManager.MemoryValues))
+                    //{
+                    //    Log.Logger.Error($"MainLoop: UpdateBuffers() failed - Exiting");
+                    //    break;
+                    //}
+                    if (!elementManager.GenerateValues())
                     {
-                        Log.Logger.Error($"MainLoop: UpdateBuffers() failed - Exiting");
+                        Log.Logger.Error($"MainLoop: GenerateValues() failed - Exiting");
                         break;
                     }
-                    elementManager.GenerateValues();
+                    ;
 
                     watch.Stop();
                     measures++;

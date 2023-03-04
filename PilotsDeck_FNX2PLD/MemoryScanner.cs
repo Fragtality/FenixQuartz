@@ -60,6 +60,7 @@ namespace PilotsDeck_FNX2PLD
             GetSystemInfo(out sysInfo);
 
             procHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, proc.Id);
+            Log.Logger.Debug($"procHandle is {procHandle}");
             process = proc;
         }
 
