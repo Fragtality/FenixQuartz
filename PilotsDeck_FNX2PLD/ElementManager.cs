@@ -63,8 +63,10 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("fcuVsDashed", MemoryPatterns["FCU-2"], -0x66C, 1, "bool");
 
             //ISIS
-            AddMemoryValue("isisStd", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
-            AddMemoryValue("isisBaro", MemoryPatterns["ISIS-1"], - 0xEC, 8, "double");
+            AddMemoryValue("isisStd1", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
+            AddMemoryValue("isisBaro1", MemoryPatterns["ISIS-1"], -0xEC, 8, "double");
+            AddMemoryValue("isisStd2", MemoryPatterns["ISIS-1"], -0xDF, 1, "bool");
+            AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
 
             //COM1
             AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
@@ -524,25 +526,31 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateISIS()
         {
+            double baro = MemoryValues["isisBaro1"].GetValue();
+            bool std = MemoryValues["isisStd1"].GetValue();
+            if (baro < 800 || baro > 1200)
+            {
+                baro = MemoryValues["isisBaro2"].GetValue();
+                std = MemoryValues["isisStd2"].GetValue();
+            }
+
             if (!Program.rawValues)
             {
                 string result;
-                if (MemoryValues["isisStd"].GetValue() == true)
+                if (std)
                     result = "STD";
                 else
                 {
                     bool isHpa = IPCManager.ReadLVar("S_FCU_EFIS1_BARO_MODE") == 1;
                     if (isHpa)
                     {
-                        double tmp = MemoryValues["isisBaro"].GetValue() ?? 0.0;
-                        tmp = Math.Round(tmp, 0);
-                        result = string.Format("{0,4:0000}", tmp);
+                        baro = Math.Round(baro, 0);
+                        result = string.Format("{0,4:0000}", baro);
                     }
                     else
                     {
-                        double tmp = MemoryValues["isisBaro"].GetValue() ?? 0.0;
-                        tmp = Math.Round(tmp * 0.029529983071445, 2);
-                        result = string.Format(CultureInfo.InvariantCulture.NumberFormat, "{0:F2}", tmp);
+                        baro = Math.Round(baro * 0.029529983071445, 2);
+                        result = string.Format(CultureInfo.InvariantCulture.NumberFormat, "{0:F2}", baro);
                     }
                 }
 
@@ -550,9 +558,8 @@ namespace PilotsDeck_FNX2PLD
             }
             else
             {
-                byte value = (bool)MemoryValues["isisStd"].GetValue()? (byte)1 : (byte)0;
-                IPCValues["isisStd"].SetValue(value);
-                IPCValues["isisBaro"].SetValue((float)MemoryValues["isisBaro"].GetValue());
+                IPCValues["isisStd"].SetValue(std);
+                IPCValues["isisBaro"].SetValue((float)baro);
             }
         }
 
