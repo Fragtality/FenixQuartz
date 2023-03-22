@@ -1,4 +1,4 @@
-# PilotsDeck_FNX
+# FenixQuartz
 This Binary is used read out some (Quartz) Displays of the Fenix A320 and write their Data to FSUIPC Offsets. There PilotsDeck (or any other Application which can either read FSUIPC Offsets or L-Vars) can pick it up to display it on the StreamDeck.<br/>
 To make one Thing directly clear: it is a **HACK**. Literally: It accesses the Process Memory directly (read-only!) to get the Data. It will likely break with the next Update (until I'll managed to find the correct Spots again).<br/>Currently compatible with Fenix Version **1.0.6.146** and MSFS **SU11**.<br/>
 <br/><br/>
@@ -13,10 +13,10 @@ To make one Thing directly clear: it is a **HACK**. Literally: It accesses the P
 It is designed to be started (and stopped) by FSUIPC - add this to your ini File:
 ```
 [Programs]
-RunIf1=READY,KILL,X:\PATH\YOU\USED\PilotsDeck_FNX2PLD.exe
+RunIf1=READY,KILL,X:\PATH\YOU\USED\FenixQuartz.exe
 ```
 But you can also start/stop it manually when MSFS is running (finished loading to the Menu)!<br/>
-If you want to start/stop it manually, you can use the Powershell-Script [here](https://github.com/Fragtality/PilotsDeck_FNX/blob/master/Restart-PilotsDeckFNX.ps1). You need to change the Path to the Binary in the Script before it can do anything useful. BUT: Don't restart it in Flight unless you really need to!
+If you want to start/stop it manually, you can use the Powershell-Script [here](https://github.com/Fragtality/FenixQuartz/blob/master/Restart-FenixQuartz.ps1). You need to change the Path to the Binary in the Script before it can do anything useful. BUT: Don't restart it in Flight unless you really need to!
 <br/><br/>
 
 # Usage
@@ -38,7 +38,7 @@ Please mind that the Config-File is overwritten with an Update, you have to reco
 <br/><br/>
 
 # Configuration
-You can configure some Parameters in the PilotsDeck_FNX2PLD.dll.config File:
+You can configure some Parameters in the FenixQuartz.dll.config File:
 - **waitForConnect**: When *true*, the Binary will wait until the Sim is running and FSUIPC is connected. Default: *"false"*
 - **offsetBase**: The first (FSUIPC) Offset Address to use (hexadecimal). Default: *"0x5408"*
 - **rawValues**: When *true*, the FCU Values are exported directly as numeric Values ("Raw-Value-Mode"). Default: *"false"*
