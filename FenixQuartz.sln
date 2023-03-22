@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PilotsDeck_FNX2PLD", "PilotsDeck_FNX2PLD\PilotsDeck_FNX2PLD.csproj", "{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FenixQuartz", "FenixQuartz\FenixQuartz.csproj", "{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
