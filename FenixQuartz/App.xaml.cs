@@ -22,6 +22,7 @@ namespace FenixQuartz
         public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
         public static readonly string altScaleDelim = Convert.ToString(ConfigurationManager.AppSettings["altScaleDelim"]) ?? " ";
         public static readonly bool addFcuMode = Convert.ToBoolean(ConfigurationManager.AppSettings["addFcuMode"]);
+        public static readonly bool ooMode = Convert.ToBoolean(ConfigurationManager.AppSettings["ooMode"]);
         public static readonly string lvarPrefix = Convert.ToString(ConfigurationManager.AppSettings["lvarPrefix"]);
         public static readonly string groupName = "FenixQuartz";
 

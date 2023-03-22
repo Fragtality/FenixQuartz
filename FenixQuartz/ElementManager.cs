@@ -463,7 +463,16 @@ namespace FenixQuartz
                         if (vs >= 0)
                             result += "+";
 
-                        result += vs.ToString("D4");
+                        if (!App.ooMode)
+                            result += vs.ToString("D4");
+                        else
+                        {
+                            string tmp = vs.ToString("D4");
+                            if (vs >= 0)
+                                result += tmp[0..2] + "oo";
+                            else
+                                result += tmp[0..3] + "oo";
+                        }
                     }
                     else //fpa
                     {
