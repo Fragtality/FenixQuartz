@@ -1,7 +1,7 @@
 ﻿using FSUIPC;
 using System;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class IPCValueOffset : IPCValue
     {
@@ -13,11 +13,11 @@ namespace PilotsDeck_FNX2PLD
             Type = type;
             Size = size;
             if (type != "string" && type != "byte")
-                Offset = new Offset<byte[]>(Program.groupName, address, size, true);
+                Offset = new Offset<byte[]>(App.groupName, address, size, true);
             else if (type == "byte")
-                Offset = new Offset<byte>(Program.groupName, address, true);
+                Offset = new Offset<byte>(App.groupName, address, true);
             else
-                Offset = new Offset<string>(Program.groupName, address, size, true);
+                Offset = new Offset<string>(App.groupName, address, size, true);
         }
 
         public override void SetValue(object value)

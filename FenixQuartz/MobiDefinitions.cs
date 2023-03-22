@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public enum MOBIFLIGHT_CLIENT_DATA_ID
     {

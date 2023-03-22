@@ -1,8 +1,7 @@
-﻿using Serilog;
-using System;
+﻿using System;
 using System.Text;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class MemoryValue : IDisposable
     {
@@ -31,7 +30,7 @@ namespace PilotsDeck_FNX2PLD
             if (valueBuffer != null)
                 Array.Copy(memBuffer, valueBuffer, memBuffer.Length);
             else
-                Log.Logger.Error($"MemoryOffset: Error in UpdateBuffer() - valueBuffer is null");
+                Logger.Log(LogLevel.Error, "MemoryValue:UpdateBuffer", $"Error - valueBuffer is null");
         }
 
         public bool IsIntegerZero()
@@ -93,7 +92,7 @@ namespace PilotsDeck_FNX2PLD
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"MemoryOffset: Exception while converting Byte Value for: {ex.Source} - {ex.Message}");
+                Logger.Log(LogLevel.Error, "MemoryValue:GetValue", $"Exception while converting Byte Value for: {ex.Source} - {ex.Message}");
             }
 
             return null;

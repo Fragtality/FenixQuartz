@@ -1,10 +1,9 @@
-﻿using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public struct MEMORY_BASIC_INFORMATION64
     {
@@ -34,16 +33,17 @@ namespace PilotsDeck_FNX2PLD
         public ushort processorRevision;
     }
 
-    public class MemoryScanner
+    public partial class MemoryScanner
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern int OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool ReadProcessMemory(int hProcess, ulong lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
-        [DllImport("kernel32.dll")]
-        private static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern int VirtualQueryEx(int hProcess, ulong lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, uint dwLength);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        private static partial int OpenProcess(int dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool ReadProcessMemory(int hProcess, ulong lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
+        [LibraryImport("kernel32.dll")]
+        private static partial void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        private static partial int VirtualQueryEx(int hProcess, ulong lpAddress, out MEMORY_BASIC_INFORMATION64 lpBuffer, uint dwLength);
 
         
         public static readonly int PROCESS_QUERY_INFORMATION = 0x0400;
@@ -60,7 +60,7 @@ namespace PilotsDeck_FNX2PLD
             GetSystemInfo(out sysInfo);
 
             procHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, proc.Id);
-            Log.Logger.Debug($"procHandle is {procHandle}");
+            Logger.Log(LogLevel.Information, "MemoryScanner:MemoryScanner", $"Fenix procHandle is {procHandle}");
             process = proc;
         }
 
@@ -101,7 +101,7 @@ namespace PilotsDeck_FNX2PLD
             }
 
             watch.Stop();
-            Log.Information(string.Format("MemoryScanner: Pattern Search took {0}s", watch.Elapsed.TotalSeconds));
+            Logger.Log(LogLevel.Information, "MemoryScanner:SearchPatterns", string.Format("Pattern Search took {0}s", watch.Elapsed.TotalSeconds));
         }
 
         private void SearchRegion(MemoryPattern pattern, ref int matches, ulong addrBase, ulong regionSize)

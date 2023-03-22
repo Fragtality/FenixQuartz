@@ -1,41 +1,39 @@
 ﻿using FSUIPC;
-using Serilog;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public static class IPCManager
     {
-        public static Offset airOffset = new(Program.groupName, 0x3C00, 256);
-        public static Offset readytofly = new Offset<byte>(Program.groupName, 0x026D);
         public static readonly int waitDuration = 30000;
 
         public static MobiSimConnect SimConnect { get; set; } = null;
 
-        public static bool WaitForSimulator(CancellationToken cancellationToken)
+        public static bool WaitForSimulator()
         {
             bool simRunning = IsSimRunning();
-            if (!simRunning && Program.waitForConnect)
+            if (!simRunning && App.waitForConnect)
             {
                 do
                 {
-                    Log.Logger.Information($"WaitForSimulator: Simulator not started - waiting {waitDuration/1000}s for Sim");
+                    Logger.Log(LogLevel.Information, "IPCManager:WaitForSimulator", $"Simulator not started - waiting {waitDuration / 1000}s for Sim");
                     Thread.Sleep(waitDuration);
                 }
-                while (!IsSimRunning() && !cancellationToken.IsCancellationRequested);
+                while (!IsSimRunning() && !App.CancellationRequested);
 
                 return true;
             }
             else if (simRunning)
             {
-                Log.Logger.Information($"WaitForSimulator: Simulator started");
+                Logger.Log(LogLevel.Information, "IPCManager:WaitForSimulator", $"Simulator started");
                 return true;
             }
             else
             {
-                Log.Logger.Error($"WaitForSimulator: Simulator not started - aborting");
+                Logger.Log(LogLevel.Error, "IPCManager:WaitForSimulator", $"Simulator not started - aborting");
                 return false;
             }
         }
@@ -51,29 +49,60 @@ namespace PilotsDeck_FNX2PLD
             return IsProcessRunning("FlightSimulator");
         }
 
-        public static bool WaitForConnection(CancellationToken cancellationToken)
+        public static bool WaitForConnection()
         {
-            bool isConnected = OpenSafeFSUIPC();
-            if (!isConnected && Program.waitForConnect)
+            if (!IsSimRunning())
+                return false;
+
+            SimConnect = new MobiSimConnect();
+            bool mobiRequested = SimConnect.Connect();
+            
+            bool isFsuipcConnected;
+            if (!App.useLvars)
+                isFsuipcConnected = OpenSafeFSUIPC();
+            else
+                isFsuipcConnected = true;
+
+            int waitMS = waitDuration / 2;
+            int countdown = 1000;
+            if (!IsProcessRunning(App.FenixExecutable))
+                countdown = waitMS;
+            if ((!App.useLvars && !isFsuipcConnected) || !SimConnect.IsConnected)
             {
                 do
                 {
-                    Log.Logger.Information($"WaitForConnection: FSUIPC not connected - waiting {waitDuration / 1000}s for Retry");
-                    Thread.Sleep(waitDuration);
-                    isConnected = OpenSafeFSUIPC();
-                }
-                while (!isConnected && !cancellationToken.IsCancellationRequested);
+                    if (countdown == waitMS)
+                        Logger.Log(LogLevel.Information, "IPCManager:WaitForConnection", $"Connection not established - waiting {waitMS / 1000}s for Retry");
 
-                return isConnected && IsSimRunning();
+                    countdown -= 1000;
+                    Thread.Sleep(1000);
+
+                    if (!IsSimRunning())
+                        break;
+
+                    if (countdown == 0)
+                    {
+                        if (!App.useLvars && !isFsuipcConnected)
+                            isFsuipcConnected = OpenSafeFSUIPC();
+
+                        if (!mobiRequested)
+                            mobiRequested = SimConnect.Connect();
+
+                        countdown = waitMS;
+                    }
+                }
+                while ((!App.useLvars && !isFsuipcConnected) || !SimConnect.IsConnected);
+
+                return isFsuipcConnected && SimConnect.IsConnected && IsSimRunning();
             }
-            else if (isConnected)
+            else if (isFsuipcConnected && SimConnect.IsConnected && IsSimRunning())
             {
-                Log.Logger.Information($"WaitForConnection: FSUIPC connected");
+                Logger.Log(LogLevel.Information, "IPCManager:WaitForConnection", $"Connection established");
                 return true;
             }
             else
             {
-                Log.Logger.Error($"WaitForConnection: FSUIPC not connected - aborting");
+                Logger.Log(LogLevel.Error, "IPCManager:WaitForConnection", $"Connection failed");
                 return false;
             }
         }
@@ -85,146 +114,56 @@ namespace PilotsDeck_FNX2PLD
                 if (!FSUIPCConnection.IsOpen)
                     FSUIPCConnection.Open();
             }
-            catch
+            catch (Exception ex)
             {
-                Log.Logger.Error($"OpenSafeFSUIPC: Exception while connecting to FSUIPC");
+                Logger.Log(LogLevel.Error, "IPCManager:OpenSafeFSUIPC", $"Exception while connecting to FSUIPC ({ex.GetType()} {ex.Message})");
             }
 
             return FSUIPCConnection.IsOpen;
         }
 
-        public static bool WaitForFenixAircraft(CancellationToken cancellationToken)
-        {
-            if (!airOffset.IsConnected)
-                airOffset.Reconnect();
-
-            bool processResult = FSUIPCProcess();
-            while (IsSimRunning() && OpenSafeFSUIPC() && !processResult && !cancellationToken.IsCancellationRequested)
-            {
-                Log.Logger.Information($"WaitForFenixAircraft: FSUIPC not ready for Process - waiting {waitDuration / 1000}s for Retry");
-                Thread.Sleep(waitDuration);
-                processResult = FSUIPCProcess();
-            }
-
-            if (!processResult)
-            {
-                Log.Logger.Error($"WaitForFenixAircraft: FSUIPC Connection or Simulator not available - aborting");
-                return false;
-            }
-
-            while (IsSimRunning() && OpenSafeFSUIPC() && !IsAircraftFenix() && !cancellationToken.IsCancellationRequested)
-            {
-                Log.Logger.Information($"WaitForFenixAircraft: Current Aircraft is not the Fenix A320 - waiting {waitDuration / 1000}s for Retry");
-                Thread.Sleep(waitDuration);
-                FSUIPCProcess();
-            }
-
-            if (!IsAircraftFenix())
-            {
-                Log.Logger.Error($"WaitForFenixAircraft: FSUIPC Connection or Simulator not available - aborting");
-                return false;
-            }
-            else
-                return true;
-        }
-
-        public static bool IsAircraftFenix()
-        {
-            return GetAircraftString().ToLower().Contains("fnx320");
-        }
-
-        public static string GetAircraftString()
-        {
-            try
-            {
-                string airString = airOffset.GetValue<string>();
-
-                if (!string.IsNullOrEmpty(airString))
-                {
-                    return airString;
-                }
-                else
-                    return "";
-            }
-            catch
-            {
-                return "";
-            }
-        }
-
-        public static bool FSUIPCProcess()
-        {
-            bool result = false;
-
-            if (FSUIPCConnection.IsOpen)
-            {
-                try
-                {
-                    FSUIPCConnection.Process(Program.groupName);
-                    result = true;
-                }
-                catch
-                {
-                    Log.Logger.Error($"Process: Exception during Process() Call");
-                }
-            }
-            else
-            {
-                Log.Logger.Error($"Process: FSUIPC Connection closed");
-            }
-
-            return result;
-        }
-
-        public static bool WaitForFenixBinary(CancellationToken cancellationToken)
+        public static bool WaitForFenixBinary()
         {
             if (!IsSimRunning())
                 return false;
 
-            SimConnect = new MobiSimConnect();
-            bool mobiRequested = SimConnect.Connect();
-
-            bool isRunning = IsProcessRunning(Program.FenixExecutable);
-            if (!isRunning || !SimConnect.IsConnected)
+            bool isRunning = IsProcessRunning(App.FenixExecutable);
+            if (!isRunning)
             {
                 do
                 {
-                    Log.Logger.Information($"WaitForFenixBinary: {Program.FenixExecutable} is not running - waiting {waitDuration / 2 / 1000}s for Retry");
+                    Logger.Log(LogLevel.Information, "IPCManager:WaitForFenixBinary", $"{App.FenixExecutable} is not running - waiting {waitDuration / 2 / 1000}s for Retry");
                     Thread.Sleep(waitDuration / 2);
-                    if (!mobiRequested)
-                        mobiRequested = SimConnect.Connect();
-                    isRunning = IsProcessRunning(Program.FenixExecutable);
+
+                    isRunning = IsProcessRunning(App.FenixExecutable);
                 }
-                while ((!isRunning || !SimConnect.IsConnected) && IsAircraftFenix() && IsSimRunning() && !cancellationToken.IsCancellationRequested);
+                while (!isRunning && IsSimRunning() && !App.CancellationRequested);
 
                 return isRunning && IsSimRunning();
             }
             else
             {
-                Log.Logger.Information($"WaitForFenixBinary: {Program.FenixExecutable} is running");
+                Logger.Log(LogLevel.Information, "IPCManager:WaitForFenixBinary", $"{App.FenixExecutable} is running");
                 return true;
             }
         }
 
-        public static bool WaitForSessionReady(CancellationToken cancellationToken)
+        public static bool WaitForSessionReady()
         {
-            if (!readytofly.IsConnected)
-                readytofly.Reconnect();
-
             int waitDuration = 5000;
+            SimConnect.SubscribeSimVar("CAMERA STATE", "Enum");
+            Thread.Sleep(250);
             bool isReady = IsCamReady();
-            while (IsSimRunning() && OpenSafeFSUIPC() && FSUIPCProcess() && !isReady && !cancellationToken.IsCancellationRequested)
+            while (IsSimRunning() && !isReady && !App.CancellationRequested)
             {
-                Log.Logger.Information($"WaitForSessionReady: Session not ready - waiting {waitDuration / 1000}s for Retry");
-                Log.Logger.Information($"WaitForSessionReady: IsCamReady [{isReady}] readytofly [{readytofly.GetValue<byte>()}]");
+                Logger.Log(LogLevel.Information, "IPCManager:WaitForSessionReady", $"Session not ready - waiting {waitDuration / 1000}s for Retry");
                 Thread.Sleep(waitDuration);
-                FSUIPCProcess();
                 isReady = IsCamReady();
             }
 
             if (!isReady)
             {
-                Log.Logger.Error($"WaitForSessionReady: FSUIPC Connection or Simulator not available - aborting");
+                Logger.Log(LogLevel.Error, "IPCManager:WaitForSessionReady", $"SimConnect or Simulator not available - aborting");
                 return false;
             }
 
@@ -233,7 +172,7 @@ namespace PilotsDeck_FNX2PLD
 
         public static bool IsCamReady()
         {
-            byte value = readytofly.GetValue<byte>();
+            float value = SimConnect.ReadSimVar("CAMERA STATE", "Enum");
 
             return value >= 2 && value <= 5;
         }
@@ -248,21 +187,10 @@ namespace PilotsDeck_FNX2PLD
                     SimConnect = null;
                 }
 
-                if (FSUIPCConnection.IsOpen)
+                if (!App.useLvars && FSUIPCConnection.IsOpen)
                     FSUIPCConnection.Close();
             }
             catch { }
-            if (!FSUIPCConnection.IsOpen)
-                Log.Logger.Information($"IPCManager: FSUIPC Connection closed");
-            else
-                Log.Logger.Warning($"IPCManager: FSUIPC still open!");
         }
-
-        public static float ReadLVar(string name)
-        {
-            return SimConnect.ReadLvar(name);
-        }
-
-
     }
 }

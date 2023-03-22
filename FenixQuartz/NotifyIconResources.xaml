@@ -1,0 +1,34 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+    xmlns:local="clr-namespace:FenixQuartz">
+
+    <ContextMenu
+        x:Shared="false"
+        x:Key="SysTrayMenu"
+        >
+        <MenuItem
+            Header="Restart Scanner"
+            Command="{Binding RestartScannerCommand}"
+            />
+        <Separator />
+        <MenuItem
+            Header="Exit"
+            Command="{Binding ExitApplicationCommand}"
+            />
+    </ContextMenu>
+
+
+    <tb:TaskbarIcon
+        x:Key="NotifyIcon"
+        ToolTipText="Right-click for Menu"
+        NoLeftClickDelay="True"
+        ContextMenu="{StaticResource SysTrayMenu}">
+
+        <tb:TaskbarIcon.DataContext>
+            <local:NotifyIconViewModel />
+        </tb:TaskbarIcon.DataContext>
+    </tb:TaskbarIcon>
+
+</ResourceDictionary>

@@ -1,10 +1,9 @@
 ﻿using Microsoft.FlightSimulator.SimConnect;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class MobiSimConnect : IDisposable
     {
@@ -13,7 +12,7 @@ namespace PilotsDeck_FNX2PLD
         public const uint MOBIFLIGHT_MESSAGE_SIZE = 1024;
 
         public const uint WM_PILOTSDECK_SIMCONNECT = 0x1980;
-        public const string CLIENT_NAME = "PilotsDeck_FNX";
+        public const string CLIENT_NAME = "FenixQuartz";
         public const string PILOTSDECK_CLIENT_DATA_NAME_SIMVAR = $"{CLIENT_NAME}.LVars";
         public const string PILOTSDECK_CLIENT_DATA_NAME_COMMAND = $"{CLIENT_NAME}.Command";
         public const string PILOTSDECK_CLIENT_DATA_NAME_RESPONSE = $"{CLIENT_NAME}.Response";
@@ -59,7 +58,7 @@ namespace PilotsDeck_FNX2PLD
                 simConnectHandle = new IntPtr(simConnectThread.ManagedThreadId);
                 simConnectThread.Start();
 
-                Log.Logger.Information($"Connect: SimConnect Connection open.");
+                Logger.Log(LogLevel.Information, "MobiSimConnect:Connect", $"SimConnect Connection open");
                 return true;
             }
             catch (Exception ex)
@@ -69,7 +68,7 @@ namespace PilotsDeck_FNX2PLD
                 cancelThread = true;
                 simConnect = null;
 
-                Log.Logger.Fatal($"Connect: Exception while opening SimConnect! (Exception: {ex.GetType()})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:Connect", $"Exception while opening SimConnect! (Exception: {ex.GetType()} {ex.Message})");
             }
 
             return false;
@@ -82,11 +81,11 @@ namespace PilotsDeck_FNX2PLD
                 isSimConnected = true;
                 simConnect.OnRecvClientData += new SimConnect.RecvClientDataEventHandler(SimConnect_OnClientData);
                 CreateDataAreaDefaultChannel();
-                Log.Logger.Information($"SimConnect_OnOpen: SimConnect OnOpen received.");
+                Logger.Log(LogLevel.Information, "MobiSimConnect:SimConnect_OnOpen", $"SimConnect OnOpen received");
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal($"SimConnect_OnOpen: Exception during SimConnect OnOpen! (Exception: {ex.GetType()})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:SimConnect_OnOpen", $"Exception during SimConnect OnOpen! (Exception: {ex.GetType()} {ex.Message})");
             }
         }
 
@@ -105,10 +104,12 @@ namespace PilotsDeck_FNX2PLD
 
                     if (isSimConnected && !isMobiConnected && ticks % (ulong)repeat == 0)
                     {
-                        Log.Logger.Debug("SimConnect_ReceiveThread: Sending Ping to MobiFlight WASM Module.");
+                        Logger.Log(LogLevel.Debug, "MobiSimConnect:SimConnect_ReceiveThread", $"Sending Ping to MobiFlight WASM Module");
                         SendMobiWasmCmd("MF.DummyCmd");
                         SendMobiWasmCmd("MF.Ping");
                     }
+
+                    Thread.Sleep(delay);
                 }
                 catch (Exception ex)
                 {
@@ -116,11 +117,11 @@ namespace PilotsDeck_FNX2PLD
                     if (errors > 6)
                     {
                         isReceiveRunning = false;
-                        Log.Logger.Fatal($"SimConnect_ReceiveThread: Maximum Errors reached, closing Receive Thread! (Exception: {ex.GetType()})");
+                        Logger.Log(LogLevel.Error, "MobiSimConnect:SimConnect_ReceiveThread", $"Maximum Errors reached, closing Receive Thread! (Exception: {ex.GetType()})");
                         return;
                     }
                 }
-                Thread.Sleep(delay);
+                
                 ticks++;
             }
             isReceiveRunning = false;
@@ -176,7 +177,7 @@ namespace PilotsDeck_FNX2PLD
                     {
                         if (!isMobiConnected)
                         {
-                            Log.Logger.Information($"SimConnect_OnClientData: MobiFlight WASM Ping acknowledged - opening Client Connection.");
+                            Logger.Log(LogLevel.Information, "MobiSimConnect:SimConnect_OnClientData", $"MobiFlight WASM Ping acknowledged - opening Client Connection");
                             SendMobiWasmCmd($"MF.Clients.Add.{CLIENT_NAME}");
                         }
                     }
@@ -186,7 +187,7 @@ namespace PilotsDeck_FNX2PLD
                         isMobiConnected = true;
                         SendClientWasmCmd("MF.SimVars.Clear");
                         SendClientWasmCmd("MF.Config.MAX_VARS_PER_FRAME.Set.30");
-                        Log.Logger.Information($"SimConnect_OnClientData: MobiFlight WASM Client Connection opened.");
+                        Logger.Log(LogLevel.Information, "MobiSimConnect:SimConnect_OnClientData", $"MobiFlight WASM Client Connection opened");
                     }
                 }
                 else
@@ -197,12 +198,12 @@ namespace PilotsDeck_FNX2PLD
                         simVars[data.dwRequestID] = simData.data;
                     }
                     else
-                        Log.Logger.Error($"SimConnect_OnClientData: The received ID '{data.dwRequestID}' is not subscribed! (Data: {data})");
+                        Logger.Log(LogLevel.Warning, "MobiSimConnect:SimConnect_OnClientData", $"The received ID '{data.dwRequestID}' is not subscribed! (Data: {data})");
                 }
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal($"SimConnect_OnClientData: Exception during SimConnect OnClientData! (Exception: {ex.GetType()}) (Data: {data})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:SimConnect_OnClientData", $"Exception during SimConnect OnClientData! (Exception: {ex.GetType()}) (Data: {data})");
             }
         }
 
@@ -239,11 +240,11 @@ namespace PilotsDeck_FNX2PLD
                 nextID = 1;
                 simVars.Clear();
                 addressToIndex.Clear();
-                Log.Logger.Information($"Disconnect: SimConnect Connection closed.");
+                Logger.Log(LogLevel.Information, "MobiSimConnect:Disconnect", $"SimConnect Connection closed");
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal($"Disconnect: Exception during disconnecting from SimConnect! (Exception: {ex.GetType()})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:Disconnect", $"Exception during disconnecting from SimConnect! (Exception: {ex.GetType()} {ex.Message})");
             }
         }
 
@@ -276,27 +277,37 @@ namespace PilotsDeck_FNX2PLD
         protected void SimConnect_OnException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {
             if (data.dwException != 3 && data.dwException != 29)
-                Log.Logger.Fatal($"SimConnect_OnException: Exception received: (Exception: {data.dwException})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:SimConnect_OnException", $"Exception received: (Exception: {data.dwException})");
         }
 
         public void SubscribeLvar(string address)
+        {
+            SubscribeVariable($"(L:{address})");
+        }
+
+        public void SubscribeSimVar(string name, string unit)
+        {
+            SubscribeVariable($"(A:{name}, {unit})");
+        }
+
+        protected void SubscribeVariable(string address)
         {
             try
             {
                 if (!addressToIndex.ContainsKey(address))
                 {
-                    RegisterVariable(nextID, $"(L:{address})");
+                    RegisterVariable(nextID, address);
                     simVars.Add(nextID, 0.0f);
                     addressToIndex.Add(address, nextID);
 
                     nextID++;
                 }
                 else
-                    Log.Logger.Error($"SubscribeAddress: The Address '{address}' is already subscribed!");
+                    Logger.Log(LogLevel.Warning, "MobiSimConnect:SubscribeAddress", $"The Address '{address}' is already subscribed");
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal($"SubscribeAddress: Exception while subscribing SimVar '{address}'! (Exception: {ex.GetType()}) (Message: {ex.Message})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:SubscribeAddress", $"Exception while subscribing SimVar '{address}'! (Exception: {ex.GetType()}) (Message: {ex.Message})");
             }
         }
 
@@ -336,12 +347,21 @@ namespace PilotsDeck_FNX2PLD
             }
             catch (Exception ex)
             {
-                Log.Logger.Fatal($"UnsubscribeAll: Exception while unsubscribing SimVars! (Exception: {ex.GetType()}) (Message: {ex.Message})");
+                Logger.Log(LogLevel.Error, "MobiSimConnect:UnsubscribeAll", $"Exception while unsubscribing SimVars! (Exception: {ex.GetType()}) (Message: {ex.Message})");
             }
         }
 
         public float ReadLvar(string address)
         {
+            if (addressToIndex.TryGetValue($"(L:{address})", out uint index) && simVars.TryGetValue(index, out float value))
+                return value;
+            else
+                return 0;
+        }
+
+        public float ReadSimVar(string name, string unit)
+        {
+            string address = $"(A:{name}, {unit})";
             if (addressToIndex.TryGetValue(address, out uint index) && simVars.TryGetValue(index, out float value))
                 return value;
             else

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class MemoryPattern
     {

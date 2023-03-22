@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public static class BoyerMoore
     {

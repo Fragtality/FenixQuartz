@@ -1,4 +1,4 @@
-﻿namespace PilotsDeck_FNX2PLD
+﻿namespace FenixQuartz
 {
     public class IPCValue
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class OutputDefinition
     {
@@ -19,12 +19,12 @@ namespace PilotsDeck_FNX2PLD
 
         public override string ToString()
         {
-            if (!Program.rawValues)
+            if (!App.rawValues)
                 return string.Format("Using FSUIPC Offset: {0,-16}     0x{1:X}:{2}:s", $"'{ID}'", Offset, Size);
-            else if (!Program.useLvars)
+            else if (!App.useLvars)
                 return string.Format("Using FSUIPC Offset: {0,-16}     0x{1:X} Type: {2,-8}  Size: {3}", $"'{ID}'", Offset, Type, Size);
             else
-                return $"Using L-Var  L:{Program.lvarPrefix + ID}";
+                return $"Using L-Var  L:{App.lvarPrefix + ID}";
         }
 
         public static OutputDefinition AddIpcOffset(string ID, string Type, int Size, ref int nextOffset)
@@ -37,10 +37,10 @@ namespace PilotsDeck_FNX2PLD
         public static List<OutputDefinition> CreateDefinitions()
         {
             List<OutputDefinition> definitions = new();
-            int nextOffset = Program.offsetBase;
+            int nextOffset = App.offsetBase;
 
             //// STRING VALUES - StreamDeck
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
                 //FCU
                 definitions.Add(AddIpcOffset("fcuSpdStr", "string", 10, ref nextOffset));
@@ -75,9 +75,13 @@ namespace PilotsDeck_FNX2PLD
                 //COM2
                 definitions.Add(AddIpcOffset("com2StandbyStr", "string", 8, ref nextOffset));
                 definitions.Add(AddIpcOffset("com2ActiveStr", "string", 8, ref nextOffset));
+
+                //CHR + ET
+                definitions.Add(AddIpcOffset("clockChrStr", "string", 6, ref nextOffset));
+                definitions.Add(AddIpcOffset("clockEtStr", "string", 6, ref nextOffset));
             }
             //// RAW VALUES (Offset)
-            else if (!Program.useLvars)
+            else if (!App.useLvars)
             {
                 //FCU
                 definitions.Add(AddIpcOffset("fcuSpd", "float", 4, ref nextOffset));
@@ -116,6 +120,10 @@ namespace PilotsDeck_FNX2PLD
 
                 //VS Selected
                 definitions.Add(AddIpcOffset("isVsActive", "byte", 1, ref nextOffset));
+
+                //CHR + ET
+                definitions.Add(AddIpcOffset("clockChr", "int", 4, ref nextOffset));
+                definitions.Add(AddIpcOffset("clockEt", "int", 4, ref nextOffset));
             }
             //// RAW VALUES (L-Var)
             else
@@ -154,7 +162,11 @@ namespace PilotsDeck_FNX2PLD
                 definitions.Add(new OutputDefinition("bat2"));
 
                 //RUDDER
-                definitions.Add(new OutputDefinition("rudder"));   
+                definitions.Add(new OutputDefinition("rudder"));
+
+                //CHR + ET
+                definitions.Add(new OutputDefinition("clockChr"));
+                definitions.Add(new OutputDefinition("clockEt"));
             }
 
             return definitions;

@@ -1,23 +1,22 @@
 ﻿using FSUIPC;
-using Serilog;
 using System;
-using System.Linq;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class ElementManager : IDisposable
     {
         public Dictionary<string, MemoryPattern> MemoryPatterns;
         public Dictionary<string, MemoryValue> MemoryValues;
+        protected List<OutputDefinition> Definitions;
 
         protected Dictionary<string, IPCValue> IPCValues;
         protected MemoryScanner Scanner;
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
-        protected Offset<int> ofActiveFreq;
 
         private float lastSwitchVS;
         private float lastSwitchAlt;
@@ -26,15 +25,24 @@ namespace PilotsDeck_FNX2PLD
         private bool isAltVsMode = false;
         private bool isLightTest = false;
 
-        public ElementManager()
+        public ElementManager(List<OutputDefinition> definitions)
         {
             IPCValues = new ();
             MemoryValues = new ();
-            ofActiveFreq = new (Program.groupName, 0x05C4);
+            Definitions = definitions;
 
             //// MEMORY PATTERNS
             MemoryPatterns = new()
             {
+                //{ "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
+                //{ "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
+                //{ "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
+                //{ "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
+                //{ "COM1-2", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) }, //works on flight restarts if com1-1 does not work
+                //{ "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
+                //{ "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+                //{ "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
+                //{ "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
@@ -44,6 +52,7 @@ namespace PilotsDeck_FNX2PLD
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
+                //{ "MCDU-1", new MemoryPattern("4C 00 4E 00 41 00 56 00 20 00 73 00 6E 00 61 00 70 00 73 00 68 00 6F 00 74 00") },
             };
 
             InitializeScanner();
@@ -69,50 +78,58 @@ namespace PilotsDeck_FNX2PLD
             AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
 
             //COM1
-            AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
-            AddMemoryValue("com1Active", MemoryPatterns["COM1-1"], -0x24, 4, "int");
+            //AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
+            //AddMemoryValue("com1Active", MemoryPatterns["COM1-1"], -0x24, 4, "int");
+            AddMemoryValue("com1Standby", MemoryPatterns["FCU-2"], +0x45C, 4, "int");
+            AddMemoryValue("com1Active", MemoryPatterns["FCU-2"], +0x444, 4, "int");
 
             //COM1
-            AddMemoryValue("com1Standby2", MemoryPatterns["COM1-2"], -0xC, 4, "int");
-            AddMemoryValue("com1Active2", MemoryPatterns["COM1-2"], -0x24, 4, "int");
+            //AddMemoryValue("com1Standby2", MemoryPatterns["COM1-2"], -0xC, 4, "int");
+            //AddMemoryValue("com1Active2", MemoryPatterns["COM1-2"], -0x24, 4, "int");
 
             //COM2
-            AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
-            AddMemoryValue("com2Active", MemoryPatterns["COM1-1"], -0x84, 4, "int");
+            //AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
+            //AddMemoryValue("com2Active", MemoryPatterns["COM1-1"], -0x84, 4, "int");
+            AddMemoryValue("com2Standby", MemoryPatterns["FCU-2"], +0x3FC, 4, "int");
+            AddMemoryValue("com2Active", MemoryPatterns["FCU-2"], +0x4D4, 4, "int");
 
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
-            AddMemoryValue("xpdrInput", MemoryPatterns["XPDR-1"], -0x10C, 2, "int"); // just that?
-            AddMemoryValue("xpdrInput2", MemoryPatterns["XPDR-1"], -0x124, 2, "int");
+            //AddMemoryValue("xpdrInput", MemoryPatterns["XPDR-1"], -0x10C, 2, "int"); // just that?
+            //AddMemoryValue("xpdrInput2", MemoryPatterns["XPDR-1"], -0x124, 2, "int");
+            AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
 
             //BAT1
             AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
 
             //BAT2
-            AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], 0x51C, 8, "double");
+            AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
 
             //RUDDER
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
             AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-1"], 0xBCE, 8, "double");
             AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
 
+            //CHR / ET
+            AddMemoryValue("clockCHR", MemoryPatterns["FCU-2"], -0x54, 4, "int");
+            AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
 
             //// STRING VALUES - StreamDeck
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
-                foreach (var def in Program.Definitions)
+                foreach (var def in Definitions)
                     AddIpcOffset(def.ID, def.Type, def.Size, def.Offset);
             }
             //// RAW VALUES (Offset)
-            else if (!Program.useLvars)
+            else if (!App.useLvars)
             {
-                foreach (var def in Program.Definitions)
+                foreach (var def in Definitions)
                     AddIpcOffset(def.ID, def.Type, def.Size, def.Offset);
             }
             //// RAW VALUES (L-Var)
             else
             {
-                foreach (var def in Program.Definitions)
+                foreach (var def in Definitions)
                     AddIpcLvar(def.ID);
             }
 
@@ -159,7 +176,7 @@ namespace PilotsDeck_FNX2PLD
 
         private void InitializeScanner()
         {
-            Process fenixProc = Process.GetProcessesByName(Program.FenixExecutable).FirstOrDefault();
+            Process fenixProc = Process.GetProcessesByName(App.FenixExecutable).FirstOrDefault();
             if (fenixProc != null)
             {
                 Scanner = new MemoryScanner(fenixProc);
@@ -169,7 +186,7 @@ namespace PilotsDeck_FNX2PLD
                 throw new NullReferenceException("Fenix Proc is NULL!");
             }
 
-            Log.Logger.Information($"InitializeScanner: Running Pattern Scan ... (Patterns#: {MemoryPatterns.Count})");
+            Logger.Log(LogLevel.Information, "ElementManager:InitializeScanner", $"Running Pattern Scan ... (Patterns#: {MemoryPatterns.Count})");
             Scanner.SearchPatterns(MemoryPatterns.Values.ToList());
         }
 
@@ -177,7 +194,7 @@ namespace PilotsDeck_FNX2PLD
         {
             foreach (var value in IPCValues.Values)
             {
-                if (value is IPCValueOffset)
+                if (!App.useLvars && value is IPCValueOffset)
                     (value as IPCValueOffset).Offset.Disconnect();                    
             }
 
@@ -203,7 +220,7 @@ namespace PilotsDeck_FNX2PLD
             int value = MemoryValues["fcuAlt"].GetValue();
             if (value < 100 || value > 43000)
             {
-                Log.Logger.Information("Memory Locations changed! Rescanning ...");
+                Logger.Log(LogLevel.Information, "ElementManager:CheckAndRescan", $"Memory Locations changed! Rescanning ...");
                 foreach (var pattern in MemoryPatterns.Values)
                     pattern.Location = 0;
                 InitializeScanner();
@@ -217,16 +234,12 @@ namespace PilotsDeck_FNX2PLD
             {
                 if (!Scanner.UpdateBuffers(MemoryValues))
                 {
-                    Log.Logger.Error($"GenerateValues: UpdateBuffers() failed!");
+                    Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"UpdateBuffers() failed");
                     return false;
                 }
                 CheckAndRescan();
-                                
-                if (!ofActiveFreq.IsConnected)
-                    ofActiveFreq.Reconnect();
-                FSUIPCConnection.Process(Program.groupName);
 
-                isLightTest = IPCManager.ReadLVar("S_OH_IN_LT_ANN_LT") == 2;
+                isLightTest = IPCManager.SimConnect.ReadLvar("S_OH_IN_LT_ANN_LT") == 2;
                 UpdateFMA();
                 UpdateFCU();
                 UpdateISIS();
@@ -235,12 +248,12 @@ namespace PilotsDeck_FNX2PLD
                 UpdateXpdr();
                 UpdateBatteries();
                 UpdateRudder();
+                UpdateClock();
 
-                FSUIPCConnection.Process(Program.groupName);
+                if (!App.useLvars)
+                    FSUIPCConnection.Process(App.groupName);
                 if (firstUpdate)
-                {
                     firstUpdate = false;
-                }
 
                 return true;
             }
@@ -252,34 +265,34 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateFMA()
         {
-            float switchAlt = IPCManager.ReadLVar("S_FCU_ALTITUDE");
+            float switchAlt = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE");
             bool isDashed = MemoryValues["fcuVsDashed"].GetValue();
             if (switchAlt != lastSwitchAlt || isDashed)
             {
                 isAltVsMode = false;
                 if (lastVSdashed != isDashed)
-                    Log.Logger.Debug($"Setting isAltVsMode to FALSE (switchAlt != lastSwitchAlt || isDashed)");
+                    Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to FALSE");
             }
             lastSwitchAlt = switchAlt;
 
-            float switchVS = IPCManager.ReadLVar("S_FCU_VERTICAL_SPEED");
+            float switchVS = IPCManager.SimConnect.ReadLvar("S_FCU_VERTICAL_SPEED");
             if (switchVS != lastSwitchVS && !firstUpdate)
             {
                 isAltVsMode = true;
-                Log.Logger.Debug($"Setting isAltVsMode to TRUE (switchVS != lastSwitchVS)");
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE");
             }
             lastSwitchVS = switchVS;           
 
-            bool altManaged = IPCManager.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
-            if (altManaged != lastALTmanaged && !altManaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
+            bool altManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
+            if (!altManaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
             {
                 isAltVsMode = true;
-                Log.Logger.Debug($"Setting isAltVsMode to TRUE (altManaged != lastALTmanaged && !altManaged && lastVSdashed != isDashed && !isDashed)");
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE");
             }
             lastALTmanaged = altManaged;
             lastVSdashed = isDashed;
 
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
                 if (isAltVsMode)
                     IPCValues["isVsActive"].SetValue("1");
@@ -297,20 +310,20 @@ namespace PilotsDeck_FNX2PLD
 
         private void UpdateFCU()
         {
-            if (Program.rawValues)
+            if (App.rawValues)
             {
                 UpdateRawFCU();
                 return;
             }
 
-            bool isModeTrkFpa = IPCManager.ReadLVar("I_FCU_TRACK_FPA_MODE") == 1;
-            bool isModeHdgVs = IPCManager.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
+            bool isModeTrkFpa = IPCManager.SimConnect.ReadLvar("I_FCU_TRACK_FPA_MODE") == 1;
+            bool isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
             bool isFcuPowered = isModeHdgVs || isModeTrkFpa;
-            bool isModeSpd = IPCManager.ReadLVar("I_FCU_SPEED_MODE") == 1;
-            bool isSpdManaged = IPCManager.ReadLVar("I_FCU_SPEED_MANAGED") == 1;
-            bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
-            bool isAltManaged = IPCManager.ReadLVar("I_FCU_ALTITUDE_MANAGED") == 1;
-            bool isAltHundred = IPCManager.ReadLVar("S_FCU_ALTITUDE_SCALE") == 0;
+            bool isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
+            bool isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
+            bool isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
+            bool isAltManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
+            bool isAltHundred = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE_SCALE") == 0;
             
             //SPEED
             string result = "";
@@ -318,14 +331,14 @@ namespace PilotsDeck_FNX2PLD
             {
                 if (isLightTest)
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                         result = "8888\n888*";
                     else
                         result = "888*";
                 }
                 else
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                     {
                         if (isModeSpd)
                             result = "SPD\n";
@@ -361,14 +374,14 @@ namespace PilotsDeck_FNX2PLD
             {
                 if (isLightTest)
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                         result = "888\n888*";
                     else
                         result = "888*";
                 }
                 else
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                     {
                         if (isModeHdgVs)
                             result = "HDG\n";
@@ -408,8 +421,8 @@ namespace PilotsDeck_FNX2PLD
                 else
                 {
                     result = MemoryValues["fcuAlt"].GetValue()?.ToString("D5") ?? "00100";
-                    if (isAltHundred && !string.IsNullOrEmpty(Program.altScaleDelim))
-                        result = result.Insert(2, Program.altScaleDelim);
+                    if (isAltHundred && !string.IsNullOrEmpty(App.altScaleDelim))
+                        result = result.Insert(2, App.altScaleDelim);
                     if (isAltManaged)
                         result += "*";
                 }
@@ -422,14 +435,14 @@ namespace PilotsDeck_FNX2PLD
             {
                 if (isLightTest)
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                         result = "888\n+8888";
                     else
                         result = "+8888";
                 }
                 else
                 {
-                    if (Program.addFcuMode)
+                    if (App.addFcuMode)
                     {
                         if (isModeHdgVs)
                             result = "V/S\n";
@@ -468,7 +481,7 @@ namespace PilotsDeck_FNX2PLD
         private void UpdateRawFCU()
         {
             //SPD
-            bool isSpdManaged = IPCManager.ReadLVar("I_FCU_SPEED_MANAGED") == 1;
+            bool isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
 
             float fvalue;
             if (isSpdManaged)
@@ -483,7 +496,7 @@ namespace PilotsDeck_FNX2PLD
                 IPCValues["fcuSpdDashed"].SetValue((byte)0);
 
             //HDG
-            bool isHdgManaged = IPCManager.ReadLVar("I_FCU_HEADING_MANAGED") == 1;
+            bool isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
             bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
 
             int hdgMng = MemoryValues["fcuHdgManaged"].GetValue() ?? 0;
@@ -503,7 +516,7 @@ namespace PilotsDeck_FNX2PLD
             IPCValues["fcuAlt"].SetValue((int)(MemoryValues["fcuAlt"].GetValue() ?? 100));
 
             //VS
-            bool isModeHdgVs = IPCManager.ReadLVar("I_FCU_HEADING_VS_MODE") == 1;
+            bool isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
 
             float vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
             if (!MemoryValues["fcuVsDashed"].GetValue())
@@ -534,14 +547,14 @@ namespace PilotsDeck_FNX2PLD
                 std = MemoryValues["isisStd2"].GetValue();
             }
 
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
                 string result;
                 if (std)
                     result = "STD";
                 else
                 {
-                    bool isHpa = IPCManager.ReadLVar("S_FCU_EFIS1_BARO_MODE") == 1;
+                    bool isHpa = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_MODE") == 1;
                     if (isHpa)
                     {
                         baro = Math.Round(baro, 0);
@@ -575,17 +588,17 @@ namespace PilotsDeck_FNX2PLD
             int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
             int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
 
-            if (com == "1" && valueActive != (ofActiveFreq.Value / 1000))
-            {
-                valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
-                valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
-            }
+            //if (com == "1" && valueActive != (ofActiveFreq.Value / 1000))
+            //{
+            //    valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
+            //    valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
+            //}
 
-            bool courseMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_VOR") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ILS") == 1;
-            bool adfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_ADF") == 1;
-            bool hfMode = FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_HF1") == 1 || FSUIPCConnection.ReadLVar($"I_PED_RMP{com}_HF2") == 1;
+            bool courseMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_VOR") == 1 || IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ILS") == 1;
+            bool adfMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ADF") == 1;
+            bool hfMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_HF1") == 1 || IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_HF2") == 1;
 
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
                 if (courseMode)
                 {
@@ -653,27 +666,32 @@ namespace PilotsDeck_FNX2PLD
         private void UpdateXpdr()
         {
             string result = "";
-            int value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
-            if (value != 0)
-            {
-                value = MemoryValues["xpdrInput"].GetValue() ?? 0;
-                if (value > 0)
-                    result = value.ToString();
-                else
-                {
-                    value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
-                    if (value > 0)
-                        result = value.ToString();
-                }
-            }
-            else
-            {
-                value = MemoryValues["xpdrInput2"].GetValue() ?? 0;
-                if (value > 0)
-                    result = value.ToString();
-            }
+            int value = MemoryValues["xpdrInput"].GetValue() ?? 0;
 
-            if (!Program.rawValues)
+            if (value <= 0)
+                value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
+
+            result = value.ToString();
+            //if (value != 0)
+            //{
+            //    value = MemoryValues["xpdrInput"].GetValue() ?? 0;
+            //    if (value > 0)
+            //        result = value.ToString();
+            //    else
+            //    {
+            //        value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
+            //        if (value > 0)
+            //            result = value.ToString();
+            //    }
+            //}
+            //else
+            //{
+            //    value = MemoryValues["xpdrInput2"].GetValue() ?? 0;
+            //    if (value > 0)
+            //        result = value.ToString();
+            //}
+
+            if (!App.rawValues)
                 IPCValues["xpdrStr"].SetValue(result);
             else
             {
@@ -689,7 +707,7 @@ namespace PilotsDeck_FNX2PLD
         private void UpdateBatteries()
         {
             double value = MemoryValues["bat1Display"].GetValue() ?? 0.0;
-            if (!Program.rawValues)
+            if (!App.rawValues)
                 IPCValues["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
             else
                 IPCValues["bat1"].SetValue((float)Math.Round(value,1));
@@ -698,7 +716,7 @@ namespace PilotsDeck_FNX2PLD
 
             if (value != 0)
             {
-                if (!Program.rawValues)
+                if (!App.rawValues)
                     IPCValues["bat2Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
                 else
                     IPCValues["bat2"].SetValue((float)Math.Round(value,1));
@@ -716,7 +734,7 @@ namespace PilotsDeck_FNX2PLD
             }
 
             value = Math.Round(value, 2);
-            if (!Program.rawValues)
+            if (!App.rawValues)
             {
                 string space = (Math.Abs(value) >= 10 ? "" : " ");
                 string result;
@@ -736,12 +754,37 @@ namespace PilotsDeck_FNX2PLD
             }
         }
 
+        private void UpdateClock()
+        {
+            UpdateClock("clockCHR", "clockChrStr", "clockChr");
+            UpdateClock("clockET", "clockEtStr", "clockEt");
+        }
+
+        private void UpdateClock(string memName, string strName, string numName)
+        {
+            int num = MemoryValues[memName].GetValue();
+            int upper = num / 100;
+            int lower = num % 100;
+
+            if (!App.rawValues)
+            {
+                if (num != -1)
+                    IPCValues[strName].SetValue(string.Format("{0:D2}:{1:D2}", upper, lower));
+                else
+                    IPCValues[strName].SetValue("");
+            }
+            else
+            {
+                IPCValues[numName].SetValue(num);
+            }
+        }
+
         public void PrintReport()
         {
             foreach (var value in MemoryValues.Values)
             {
                 ulong location = MemoryScanner.CalculateLocation(value.Pattern.Location, value.PatternOffset);
-                Log.Information($"ElementManager: MemoryValue <{value.ID}> is at Address 0x{location:X} ({location:d})");
+                Logger.Log(LogLevel.Information, "ElementManager:PrintReport", $"MemoryValue <{value.ID}> is at Address 0x{location:X} ({location:d})");
             }
         }
     }

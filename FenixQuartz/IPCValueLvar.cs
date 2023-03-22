@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace PilotsDeck_FNX2PLD
+namespace FenixQuartz
 {
     public class IPCValueLvar : IPCValue
     {
-        public IPCValueLvar(string id, bool noSubscription = true) : base(Program.lvarPrefix + id, "float", 4)
+        public IPCValueLvar(string id, bool noSubscription = true) : base(App.lvarPrefix + id, "float", 4)
         {
             if (!noSubscription)
                 IPCManager.SimConnect.SubscribeLvar(ID);
