@@ -57,11 +57,14 @@ namespace FenixQuartz
                 //XPDR
                 definitions.Add(AddIpcOffset("xpdrStr", "string", 5, ref nextOffset));
 
-                //BAT1
-                definitions.Add(AddIpcOffset("bat1Str", "string", 5, ref nextOffset));
+                if (!App.ignoreBatteries)
+                {
+                    //BAT1
+                    definitions.Add(AddIpcOffset("bat1Str", "string", 5, ref nextOffset));
 
-                //BAT2
-                definitions.Add(AddIpcOffset("bat2Str", "string", 5, ref nextOffset));
+                    //BAT2
+                    definitions.Add(AddIpcOffset("bat2Str", "string", 5, ref nextOffset));
+                }
 
                 //RUDDER
                 definitions.Add(AddIpcOffset("rudderStr", "string", 6, ref nextOffset));
@@ -100,12 +103,15 @@ namespace FenixQuartz
                 //XPDR
                 definitions.Add(AddIpcOffset("xpdr", "short", 2, ref nextOffset));
 
-                //BAT1
-                definitions.Add(AddIpcOffset("bat1", "float", 4, ref nextOffset));
+                if (!App.ignoreBatteries)
+                {
+                    //BAT1
+                    definitions.Add(AddIpcOffset("bat1", "float", 4, ref nextOffset));
 
-                //BAT2
-                definitions.Add(AddIpcOffset("bat2", "float", 4, ref nextOffset));
-
+                    //BAT2
+                    definitions.Add(AddIpcOffset("bat2", "float", 4, ref nextOffset));
+                }
+                
                 //RUDDER
                 definitions.Add(AddIpcOffset("rudder", "float", 4, ref nextOffset));
 
@@ -155,11 +161,14 @@ namespace FenixQuartz
                 //XPDR
                 definitions.Add(new OutputDefinition("xpdr"));
 
-                //BAT1
-                definitions.Add(new OutputDefinition("bat1"));
+                if (!App.ignoreBatteries)
+                {
+                    //BAT1
+                    definitions.Add(new OutputDefinition("bat1"));
 
-                //BAT2
-                definitions.Add(new OutputDefinition("bat2"));
+                    //BAT2
+                    definitions.Add(new OutputDefinition("bat2"));
+                }
 
                 //RUDDER
                 definitions.Add(new OutputDefinition("rudder"));

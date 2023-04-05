@@ -85,8 +85,11 @@ namespace FenixQuartz
             AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
 
             //BAT2
-            AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
-            AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
+            if (!App.ignoreBatteries)
+            {
+                AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
+                AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
+            }
 
             //RUDDER
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
@@ -217,7 +220,7 @@ namespace FenixQuartz
             }
         }
 
-        private static int modcounter = 0;
+        //private static int modcounter = 0;
         public bool GenerateValues()
         {
             try
@@ -245,7 +248,8 @@ namespace FenixQuartz
                 UpdateCom("1");
                 UpdateCom("2");
                 UpdateXpdr();
-                UpdateBatteries();
+                if (!App.ignoreBatteries)
+                    UpdateBatteries();
                 UpdateRudder();
                 UpdateClock();
 
@@ -682,7 +686,7 @@ namespace FenixQuartz
 
         private void UpdateXpdr()
         {
-            string result = "";
+            string result;
             int value = MemoryValues["xpdrInput"].GetValue() ?? 0;
 
             if (value <= 0)
