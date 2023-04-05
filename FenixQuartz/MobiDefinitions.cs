@@ -63,12 +63,15 @@ namespace FenixQuartz
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = (int)MobiSimConnect.MOBIFLIGHT_MESSAGE_SIZE)]
         public byte[] data;
 
-        public ClientDataString(string strData)
+        public ClientDataString()
         {
-            byte[] txtBytes = Encoding.ASCII.GetBytes(strData);
-            var ret = new byte[1024];
-            Array.Copy(txtBytes, ret, txtBytes.Length);
-            data = ret;
+            data = new byte[MobiSimConnect.MOBIFLIGHT_MESSAGE_SIZE];
+        }
+
+        public void Set(byte[] txtBytes)
+        {
+            Array.Clear(data);
+            Array.Copy(txtBytes, data, txtBytes.Length);
         }
     }
 

@@ -140,6 +140,13 @@ namespace FenixQuartz
                         break;
                     }
 
+                    if (App.useLvars && measures % 40 == 0)
+                    {
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        GC.Collect();
+                    }
+
                     watch.Stop();
                     measures++;
                     if (measures > averageTick)

@@ -270,9 +270,14 @@ namespace FenixQuartz
             SendWasmCmd(MOBIFLIGHT_CLIENT_DATA_ID.MOBIFLIGHT_CMD, (MOBIFLIGHT_CLIENT_DATA_ID)0, command);
         }
 
+        private ClientDataString clientData = new();
+
         private void SendWasmCmd(Enum cmdChannelId, Enum cmdId, string command)
         {
-            simConnect.SetClientData(cmdChannelId, cmdId, SIMCONNECT_CLIENT_DATA_SET_FLAG.DEFAULT, 0, new ClientDataString(command));
+            byte[] txtBytes = Encoding.UTF8.GetBytes(command);
+            clientData.Set(txtBytes);
+            simConnect.SetClientData(cmdChannelId, cmdId, SIMCONNECT_CLIENT_DATA_SET_FLAG.DEFAULT, 0, clientData);
+            txtBytes = null;
         }
 
 

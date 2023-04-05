@@ -210,7 +210,7 @@ namespace FenixQuartz
         private void CheckAndRescan()
         {
             int value = MemoryValues["fcuAlt"].GetValue();
-            if (value < 100 || value > 43000)
+            if (value < 100 || value > 49000)
             {
                 Logger.Log(LogLevel.Information, "ElementManager:CheckAndRescan", $"Memory Locations changed! Rescanning ...");
                 foreach (var pattern in MemoryPatterns.Values)
@@ -599,21 +599,8 @@ namespace FenixQuartz
 
         private void UpdateCom(string com)
         {
-            //int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
-            //if (valueStandby == 0 && com == "1")
-            //    valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
-            //int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
-            //if (valueActive == 0 && com == "1")
-            //    valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
-
             int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
             int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
-
-            //if (com == "1" && valueActive != (ofActiveFreq.Value / 1000))
-            //{
-            //    valueActive = MemoryValues[$"com{com}Active2"].GetValue() ?? 0;
-            //    valueStandby = MemoryValues[$"com{com}Standby2"].GetValue() ?? 0;
-            //}
 
             bool courseMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_VOR") == 1 || IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ILS") == 1;
             bool adfMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ADF") == 1;
@@ -693,24 +680,6 @@ namespace FenixQuartz
                 value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
 
             result = value.ToString();
-            //if (value != 0)
-            //{
-            //    value = MemoryValues["xpdrInput"].GetValue() ?? 0;
-            //    if (value > 0)
-            //        result = value.ToString();
-            //    else
-            //    {
-            //        value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
-            //        if (value > 0)
-            //            result = value.ToString();
-            //    }
-            //}
-            //else
-            //{
-            //    value = MemoryValues["xpdrInput2"].GetValue() ?? 0;
-            //    if (value > 0)
-            //        result = value.ToString();
-            //}
 
             if (!App.rawValues)
                 IPCValues["xpdrStr"].SetValue(result);
