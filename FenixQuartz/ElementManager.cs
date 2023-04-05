@@ -22,6 +22,7 @@ namespace FenixQuartz
         private float lastSwitchAlt;
         private bool lastVSdashed = false;
         private bool lastALTmanaged = false;
+        private bool lastHDGmanaged = false;
         private bool isAltVsMode = false;
         private bool isLightTest = false;
 
@@ -34,25 +35,16 @@ namespace FenixQuartz
             //// MEMORY PATTERNS
             MemoryPatterns = new()
             {
-                //{ "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
-                //{ "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
-                //{ "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                //{ "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
-                //{ "COM1-2", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) }, //works on flight restarts if com1-1 does not work
-                //{ "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
-                //{ "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                //{ "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
-                //{ "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
                 { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
-                { "COM1-2", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF", 3) }, //works on flight restarts if com1-1 does not work
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
+                { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                //{ "MCDU-1", new MemoryPattern("4C 00 4E 00 41 00 56 00 20 00 73 00 6E 00 61 00 70 00 73 00 68 00 6F 00 74 00") },
+                //{ "MCDU-1", new MemoryPattern("20 29 6B CE F8 7F 00 00 80 67 FD 09 00 00 00 00") },
             };
 
             InitializeScanner();
@@ -78,25 +70,15 @@ namespace FenixQuartz
             AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
 
             //COM1
-            //AddMemoryValue("com1Standby", MemoryPatterns["COM1-1"], -0xC, 4, "int");
-            //AddMemoryValue("com1Active", MemoryPatterns["COM1-1"], -0x24, 4, "int");
             AddMemoryValue("com1Standby", MemoryPatterns["FCU-2"], +0x45C, 4, "int");
             AddMemoryValue("com1Active", MemoryPatterns["FCU-2"], +0x444, 4, "int");
 
-            //COM1
-            //AddMemoryValue("com1Standby2", MemoryPatterns["COM1-2"], -0xC, 4, "int");
-            //AddMemoryValue("com1Active2", MemoryPatterns["COM1-2"], -0x24, 4, "int");
-
             //COM2
-            //AddMemoryValue("com2Standby", MemoryPatterns["COM1-1"], -0x6C, 4, "int");
-            //AddMemoryValue("com2Active", MemoryPatterns["COM1-1"], -0x84, 4, "int");
             AddMemoryValue("com2Standby", MemoryPatterns["FCU-2"], +0x3FC, 4, "int");
             AddMemoryValue("com2Active", MemoryPatterns["FCU-2"], +0x4D4, 4, "int");
 
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
-            //AddMemoryValue("xpdrInput", MemoryPatterns["XPDR-1"], -0x10C, 2, "int"); // just that?
-            //AddMemoryValue("xpdrInput2", MemoryPatterns["XPDR-1"], -0x124, 2, "int");
             AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
 
             //BAT1
@@ -104,6 +86,7 @@ namespace FenixQuartz
 
             //BAT2
             AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
+            AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
 
             //RUDDER
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
@@ -113,6 +96,12 @@ namespace FenixQuartz
             //CHR / ET
             AddMemoryValue("clockCHR", MemoryPatterns["FCU-2"], -0x54, 4, "int");
             AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
+
+            //TO Speeds
+            //AddMemoryValue("speedV1", MemoryPatterns["MCDU-1"], +0x2EC, 4, "int");
+            //AddMemoryValue("speedVR", MemoryPatterns["MCDU-1"], +0x2FC, 4, "int");
+            //AddMemoryValue("speedV2", MemoryPatterns["MCDU-1"], +0x2F4, 4, "int");
+
 
             //// STRING VALUES - StreamDeck
             if (!App.rawValues)
@@ -228,10 +217,20 @@ namespace FenixQuartz
             }
         }
 
+        private static int modcounter = 0;
         public bool GenerateValues()
         {
             try
             {
+                //if (modcounter % 50 == 0 && modcounter > 0)
+                //{
+                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"V1: {MemoryValues["speedV1"].GetValue()}");
+                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"VR: {MemoryValues["speedVR"].GetValue()}");
+                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"V2: {MemoryValues["speedV2"].GetValue()}");
+                    
+                //}
+                //modcounter++;
+
                 if (!Scanner.UpdateBuffers(MemoryValues))
                 {
                     Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"UpdateBuffers() failed");
@@ -271,7 +270,7 @@ namespace FenixQuartz
             {
                 isAltVsMode = false;
                 if (lastVSdashed != isDashed)
-                    Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to FALSE");
+                    Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to FALSE (Alt-Knob or Dashed)");
             }
             lastSwitchAlt = switchAlt;
 
@@ -279,16 +278,25 @@ namespace FenixQuartz
             if (switchVS != lastSwitchVS && !firstUpdate)
             {
                 isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE");
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (VS-Knob)");
             }
             lastSwitchVS = switchVS;           
 
             bool altManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
-            if (!altManaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
+            if (!altManaged && altManaged != lastALTmanaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
             {
                 isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE");
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Alt-Dot changed and Dashed changed)");
             }
+
+            bool hdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
+            if (hdgManaged != lastHDGmanaged && lastVSdashed != isDashed && !isDashed)
+            {
+                isAltVsMode = true;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Hdg-Dot changed and Dashed changed)");
+            }
+
+            lastHDGmanaged = hdgManaged;
             lastALTmanaged = altManaged;
             lastVSdashed = isDashed;
 
@@ -722,6 +730,8 @@ namespace FenixQuartz
                 IPCValues["bat1"].SetValue((float)Math.Round(value,1));
 
             value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
+            if (value == 0.0 || MemoryValues["bat2Display1"].IsTinyValue())
+                value = MemoryValues["bat2Display2"].GetValue() ?? 0.0;
 
             if (value != 0)
             {
