@@ -1,5 +1,6 @@
 ﻿using Microsoft.FlightSimulator.SimConnect;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -273,6 +274,7 @@ namespace FenixQuartz
         {
             simConnect.SetClientData(cmdChannelId, cmdId, SIMCONNECT_CLIENT_DATA_SET_FLAG.DEFAULT, 0, new ClientDataString(command));
         }
+
 
         protected void SimConnect_OnException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION data)
         {

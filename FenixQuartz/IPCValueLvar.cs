@@ -4,6 +4,8 @@ namespace FenixQuartz
 {
     public class IPCValueLvar : IPCValue
     {
+        float lastValue = float.NaN;
+
         public IPCValueLvar(string id, bool noSubscription = true) : base(App.lvarPrefix + id, "float", 4)
         {
             if (!noSubscription)
@@ -25,9 +27,12 @@ namespace FenixQuartz
                 fValue = Convert.ToSingle(@double);
             if (value is string)
                 float.TryParse(value as string, ElementManager.formatInfo, out fValue);
-            
-            if (!float.IsNaN(fValue))
+
+            if (!float.IsNaN(fValue) && fValue != lastValue)
+            {
                 IPCManager.SimConnect.WriteLvar(ID, fValue);
+                lastValue = fValue;
+            }
         }
 
         public override dynamic GetValue()
