@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace FenixQuartz
@@ -48,11 +49,12 @@ namespace FenixQuartz
         
         public static readonly int PROCESS_QUERY_INFORMATION = 0x0400;
         public static readonly int PROCESS_VM_READ = 0x0010;
-        public static readonly int ChunkSize = 1024 * 1024;
+        public static readonly int ChunkSize = 256 * 256;
 
         private int procHandle = 0;
         private Process process;
         private SYSTEM_INFO sysInfo;
+        private readonly Dictionary<string, List<MemoryPattern>> uniquePatterns = new();
 
         public MemoryScanner(Process proc)
         {
@@ -74,6 +76,39 @@ namespace FenixQuartz
             return process != null && !process.HasExited;
         }
 
+        private void IntializePatterns(List<MemoryPattern> patterns)
+        {
+            uniquePatterns.Clear();
+            List<MemoryPattern> list;
+            foreach (var pattern in patterns)
+            {
+                if (uniquePatterns.ContainsKey(pattern.Pattern))
+                {
+                    list = uniquePatterns[pattern.Pattern];
+                    if (list != null)
+                    {
+                        list.Add(pattern);
+                    }
+                    else
+                    {
+                        list = new()
+                        {
+                            pattern
+                        };
+                        uniquePatterns[pattern.Pattern] = list;
+                    }
+                }
+                else
+                {
+                    list = new()
+                    {
+                        pattern
+                    };
+                    uniquePatterns.Add(pattern.Pattern, list);
+                }
+            }
+        }
+
         public void SearchPatterns(List<MemoryPattern> patterns)
         {
             Stopwatch watch = new();
@@ -82,84 +117,77 @@ namespace FenixQuartz
             MEMORY_BASIC_INFORMATION64 memInfo = new();
             ulong addrBase;
             ulong addrMax = sysInfo.maximumApplicationAddress;
-            int matches;
+            patterns.ForEach(p => p.Matches = 0);
+            IntializePatterns(patterns);
 
-            foreach(var pattern in patterns)
+            addrBase = sysInfo.minimumApplicationAddress;
+
+            while (addrBase < addrMax && VirtualQueryEx(procHandle, addrBase, out memInfo, 48) != 0 && patterns.Any(p => p.Location == 0))
             {
-                addrBase = sysInfo.minimumApplicationAddress;
-                matches = 0;
-
-                while (addrBase < addrMax && pattern.Location == 0 && VirtualQueryEx(procHandle, addrBase, out memInfo, 48) != 0)
+                if (memInfo.Protect == 0x04 && memInfo.State == 0x00001000)
                 {
-                    if (memInfo.Protect == 0x04 && memInfo.State == 0x00001000)
-                    {
-                        SearchRegion(pattern, ref matches, memInfo.BaseAddress, memInfo.RegionSize);
-                    } 
-                    addrBase += memInfo.RegionSize;
-                }
-
+                    SearchRegion(memInfo.BaseAddress, memInfo.RegionSize);
+                } 
+                addrBase += memInfo.RegionSize;
             }
 
             watch.Stop();
             Logger.Log(LogLevel.Information, "MemoryScanner:SearchPatterns", string.Format("Pattern Search took {0}s", watch.Elapsed.TotalSeconds));
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
         }
 
-        private void SearchRegion(MemoryPattern pattern, ref int matches, ulong addrBase, ulong regionSize)
+        private void SearchRegion(ulong addrBase, ulong regionSize)
         {
             ulong addrEnd = addrBase + regionSize;
             byte[] memBuff = new byte[ChunkSize];
             int bytesRead = 0;
             int result;
-            int lastResult = -1;
-            bool readNewChunk = true;
 
             do
             {
-                if (readNewChunk)
-                {
-                    if (!ReadProcessMemory(procHandle, addrBase, memBuff, ChunkSize, ref bytesRead) || bytesRead != ChunkSize)
-                    {
-                        addrBase += (ulong)ChunkSize;
-                        continue;
-                    }
-                    else
-                    {
-                        readNewChunk = false;
-                        lastResult = -1;
-                    }
-                }
-                else if (lastResult != -1)
-                {
-                    if (lastResult + pattern.BytePattern.Length < ChunkSize)
-                        Array.Fill<byte>(memBuff, 0, 0, lastResult + pattern.BytePattern.Length);
-                    else
-                    {
-                        readNewChunk = true;
-                        lastResult = -1;
-                        addrBase += (ulong)ChunkSize;
-                        continue;
-                    }
-                }
-
-                result = BoyerMoore.IndexOf(memBuff, pattern.BytePattern);
-                if (result != -1)
-                {
-                    matches++;
-                    if (matches == pattern.MatchNumber)
-                        pattern.Location = addrBase + (ulong)result;
-                    else
-                        lastResult = result;
-                }
-                else
-                    lastResult = result;
-
-                if (lastResult == -1 || lastResult >= ChunkSize - pattern.BytePattern.Length)
+                if (!ReadProcessMemory(procHandle, addrBase, memBuff, ChunkSize, ref bytesRead) || bytesRead < 512)
                 {
                     addrBase += (ulong)ChunkSize;
-                    readNewChunk = true;
+                    continue;
                 }
+
+                foreach (var patternList in uniquePatterns.Values)
+                {
+                    if (patternList.All(p => p.Location != 0))
+                        continue;
+
+                    result = -1;
+
+                    if (!patternList.First().HasWildCards)
+                        result = BoyerMoore.IndexOf(memBuff, patternList.First().BytePattern);
+                    else
+                    {
+                        var resultList = BoyerMooreHorspool.SearchPattern(memBuff, patternList.First().PatternTuple, patternList.First().Pattern.Length);
+                        result = resultList.Count > 0 ? resultList[0] : -1;
+                    }
+
+                    if (result != -1)
+                    {
+                        foreach (var pattern in patternList)
+                        {
+                            if (pattern.Location == 0)
+                            {
+                                pattern.Matches++;
+                                if (pattern.Matches == pattern.MatchNumber)
+                                    pattern.Location = addrBase + (ulong)result;
+                            }
+                        }
+                    }
+                }
+
+                addrBase += (ulong)ChunkSize;
             }
-            while (pattern.Location == 0 && addrBase < addrEnd);
+            while (addrBase < addrEnd);
+
+            memBuff = null;
         }
 
         public static ulong CalculateLocation(ulong baseAddr, long offset)

@@ -1,0 +1,165 @@
+﻿<Window x:Class="FenixQuartz.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FenixQuartz"
+        mc:Ignorable="d"
+        Title="Debug UI" Height="532" Width="432" IsVisibleChanged="Window_IsVisibleChanged" Closing="Window_Closing">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Column="0">
+            <StackPanel Orientation="Horizontal">
+                <Label>isSpdManaged</Label>
+                <Label Name="isSpdManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuSpdDashed</Label>
+                <Label Name="fcuSpdDashed"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuSpd</Label>
+                <Label Name="fcuSpd"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuSpdManaged</Label>
+                <Label Name="fcuSpdManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isHdgManaged</Label>
+                <Label Name="isHdgManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuHdgDashed</Label>
+                <Label Name="fcuHdgDashed"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuHdg</Label>
+                <Label Name="fcuHdg"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuHdgManaged</Label>
+                <Label Name="fcuHdgManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isAltManaged</Label>
+                <Label Name="isAltManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuAlt</Label>
+                <Label Name="fcuAlt"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label FontWeight="DemiBold">isAltVsMode</Label>
+                <Label Name="isAltVsMode"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuVsDashed</Label>
+                <Label Name="fcuVsDashed"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuVs</Label>
+                <Label Name="fcuVs"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>fcuVsManaged</Label>
+                <Label Name="fcuVsManaged"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisStd1</Label>
+                <Label Name="isisStd1"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisBaro1</Label>
+                <Label Name="isisBaro1"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisStd2</Label>
+                <Label Name="isisStd2"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisBaro2</Label>
+                <Label Name="isisBaro2"></Label>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" Grid.Column="1">
+            <StackPanel Orientation="Horizontal">
+                <Label>com1Active</Label>
+                <Label Name="com1Active"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>com1Standby</Label>
+                <Label Name="com1Standby"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>com2Active</Label>
+                <Label Name="com2Active"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>com2Standby</Label>
+                <Label Name="com2Standby"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>xpdrDisplay</Label>
+                <Label Name="xpdrDisplay"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>xpdrInput</Label>
+                <Label Name="xpdrInput"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>bat1Display</Label>
+                <Label Name="bat1Display"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>bat2Display1</Label>
+                <Label Name="bat2Display1"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>bat2Display2</Label>
+                <Label Name="bat2Display2"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>rudderDisplay1</Label>
+                <Label Name="rudderDisplay1"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>rudderDisplay2</Label>
+                <Label Name="rudderDisplay2"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>rudderDisplay3</Label>
+                <Label Name="rudderDisplay3"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>clockCHR</Label>
+                <Label Name="clockCHR"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>clockET</Label>
+                <Label Name="clockET"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedV1-(1-3)</Label>
+                <Label Name="speedV1_1"></Label>
+                <Label Name="speedV1_2"></Label>
+                <Label Name="speedV1_3"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedVR-(1-3)</Label>
+                <Label Name="speedVR_1"></Label>
+                <Label Name="speedVR_2"></Label>
+                <Label Name="speedVR_3"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedV2-(1-3)</Label>
+                <Label Name="speedV2_1"></Label>
+                <Label Name="speedV2_2"></Label>
+                <Label Name="speedV2_3"></Label>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -8,7 +8,7 @@ namespace FenixQuartz
         {
             if (needle.Length == 0)
             {
-                return 0;
+                return -1;
             }
 
             int[] charTable = MakeCharTable(needle);

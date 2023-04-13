@@ -18,13 +18,24 @@ namespace FenixQuartz
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         private bool firstUpdate = true;
 
-        private float lastSwitchVS;
-        private float lastSwitchAlt;
-        private bool lastVSdashed = false;
-        private bool lastALTmanaged = false;
-        private bool lastHDGmanaged = false;
-        private bool isAltVsMode = false;
-        private bool isLightTest = false;
+        public float lastSwitchVS;
+        public float lastSwitchAlt;
+
+        public bool lastVSdashed = false;
+        public int lastVSval = 0;
+        //public float lastVSpos = 0;
+        public bool lastALTmanaged = false;
+        public bool lastHDGmanaged = false;
+        public bool isAltVsMode = false;
+        public bool isLightTest = false;
+        public bool isAltManaged = false;
+        public bool isHdgManaged = false;
+        public bool isSpdManaged = false;
+        public bool fcuNotInitialized = true;
+        public bool fcuIsPowered = false;
+        public bool perfWasSet = false;
+        public bool simOnGround = true;
+        public bool hasLanded = false;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
@@ -38,13 +49,14 @@ namespace FenixQuartz
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                { "COM1-1", new MemoryPattern("00 00 00 00 D3 01 00 00 FF FF FF FF 00 00 00 00 00 00 00 00") },
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                //{ "MCDU-1", new MemoryPattern("20 29 6B CE F8 7F 00 00 80 67 FD 09 00 00 00 00") },
+                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
+                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
             };
 
             InitializeScanner();
@@ -74,19 +86,20 @@ namespace FenixQuartz
             AddMemoryValue("com1Active", MemoryPatterns["FCU-2"], +0x444, 4, "int");
 
             //COM2
+            AddMemoryValue("com2Active", MemoryPatterns["FCU-2"], +0x3E4, 4, "int");
             AddMemoryValue("com2Standby", MemoryPatterns["FCU-2"], +0x3FC, 4, "int");
-            AddMemoryValue("com2Active", MemoryPatterns["FCU-2"], +0x4D4, 4, "int");
 
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
             AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
 
-            //BAT1
-            AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
-
-            //BAT2
+            //BAT
             if (!App.ignoreBatteries)
             {
+                //BAT1
+                AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
+
+                //BAT2
                 AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
                 AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
             }
@@ -101,9 +114,16 @@ namespace FenixQuartz
             AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
 
             //TO Speeds
-            //AddMemoryValue("speedV1", MemoryPatterns["MCDU-1"], +0x2EC, 4, "int");
-            //AddMemoryValue("speedVR", MemoryPatterns["MCDU-1"], +0x2FC, 4, "int");
-            //AddMemoryValue("speedV2", MemoryPatterns["MCDU-1"], +0x2F4, 4, "int");
+            AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0x578, 4, "int");
+            AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0x588, 4, "int");
+            AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0x580, 4, "int");
+            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x578, 4, "int");
+            AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x588, 4, "int");
+            AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x580, 4, "int");
+            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int");
+            AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x588, 4, "int");
+            AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x580, 4, "int");
+
 
 
             //// STRING VALUES - StreamDeck
@@ -125,6 +145,12 @@ namespace FenixQuartz
                     AddIpcLvar(def.ID);
             }
 
+            ////TO L-Vars
+            AddIpcLvar("speedV1");
+            AddIpcLvar("speedVR");
+            AddIpcLvar("speedV2");
+
+            IPCManager.SimConnect.SubscribeSimVar("SIM ON GROUND", "Bool");
             IPCManager.SimConnect.SubscribeLvar("S_OH_IN_LT_ANN_LT");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_VERTICAL_SPEED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE");
@@ -137,6 +163,7 @@ namespace FenixQuartz
             IPCManager.SimConnect.SubscribeLvar("I_FCU_ALTITUDE_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE_SCALE");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_MODE");
+            IPCManager.SimConnect.SubscribeLvar("I_CDU1_FM");            
             string com = "1";
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
@@ -207,39 +234,59 @@ namespace FenixQuartz
             GC.SuppressFinalize(this);
         }
 
-        private void CheckAndRescan()
+        private void CheckFCU()
         {
-            int value = MemoryValues["fcuAlt"].GetValue();
-            if (value < 100 || value > 49000)
+            fcuIsPowered = IPCManager.SimConnect.ReadLvar("I_FCU_TRACK_FPA_MODE") == 1 || IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
+            isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
+            isAltManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
+            isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
+            int alt = (int)(MemoryValues["fcuAlt"].GetValue() ?? 0);
+            int spd = (int)(MemoryValues["fcuSpd"].GetValue() ?? 0);
+            int hdg = (int)(MemoryValues["fcuHdg"].GetValue() ?? 0);
+
+            if (alt < 100 || alt > 49000 || spd < 0 || spd > 401 || hdg < 0 || hdg > 361)
             {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckAndRescan", $"Memory Locations changed! Rescanning ...");
-                foreach (var pattern in MemoryPatterns.Values)
-                    pattern.Location = 0;
-                InitializeScanner();
-                Scanner.UpdateBuffers(MemoryValues);
+                Logger.Log(LogLevel.Information, "ElementManager:CheckFCU", $"Memory Locations changed (FCU-Check)! Rescanning ...");
+                Rescan();
             }
         }
 
-        //private static int modcounter = 0;
+        private void CheckMCDU()
+        {
+            if (firstUpdate && fcuIsPowered)
+            {
+                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"FCU already powered, skip Rescans.");
+                perfWasSet = true;
+            }
+
+            if (!firstUpdate && !perfWasSet && isSpdManaged)
+            {
+                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD changed to managed)! Rescanning ...");
+                Rescan();
+                perfWasSet = true;
+            }
+
+        }
+
+        private void Rescan()
+        {
+            foreach (var pattern in MemoryPatterns.Values)
+                pattern.Location = 0;
+            InitializeScanner();
+            Scanner.UpdateBuffers(MemoryValues);
+        }
+
         public bool GenerateValues()
         {
             try
             {
-                //if (modcounter % 50 == 0 && modcounter > 0)
-                //{
-                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"V1: {MemoryValues["speedV1"].GetValue()}");
-                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"VR: {MemoryValues["speedVR"].GetValue()}");
-                //    Logger.Log(LogLevel.Debug, "ElementManager:GenerateValues", $"V2: {MemoryValues["speedV2"].GetValue()}");
-                    
-                //}
-                //modcounter++;
-
                 if (!Scanner.UpdateBuffers(MemoryValues))
                 {
                     Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"UpdateBuffers() failed");
                     return false;
                 }
-                CheckAndRescan();
+                CheckFCU();
+                CheckMCDU();
 
                 isLightTest = IPCManager.SimConnect.ReadLvar("S_OH_IN_LT_ANN_LT") == 2;
                 UpdateFMA();
@@ -252,9 +299,11 @@ namespace FenixQuartz
                     UpdateBatteries();
                 UpdateRudder();
                 UpdateClock();
+                UpdateToSpeeds();
 
                 if (!App.useLvars)
                     FSUIPCConnection.Process(App.groupName);
+
                 if (firstUpdate)
                     firstUpdate = false;
 
@@ -268,8 +317,52 @@ namespace FenixQuartz
 
         private void UpdateFMA()
         {
-            float switchAlt = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE");
+            int vsVal = MemoryValues["fcuVs"].GetValue() ?? 0;
+            int vsValMng = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
             bool isDashed = MemoryValues["fcuVsDashed"].GetValue();
+            if (!firstUpdate && !isAltVsMode && vsVal != 0 && lastVSval != vsVal && vsValMng == 0 && !isDashed)
+            {
+                isAltVsMode = true;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (VS-Value (FMA) changed when isAltVsMode was false)");
+            }
+            lastVSval = vsVal;
+
+            bool lastOnGround = simOnGround;
+            simOnGround = IPCManager.SimConnect.ReadSimVar("SIM ON GROUND", "Bool") != 0.0f;
+            if (!isSpdManaged && !isHdgManaged && simOnGround && !fcuNotInitialized)
+            {
+                fcuNotInitialized = true;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to TRUE");
+            }
+            else if (!simOnGround && fcuNotInitialized)
+            {
+                fcuNotInitialized = false;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to FALSE (not on Ground)");
+            }
+            else if ((isSpdManaged || isHdgManaged) && fcuNotInitialized)
+            {
+                fcuNotInitialized = false;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to FALSE (SPD or HDG managed)");
+            }
+
+            if (!firstUpdate && simOnGround && !lastOnGround)
+            {
+                hasLanded = true;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting hasLanded to TRUE");
+            }
+            else if (!simOnGround && hasLanded)
+            {
+                hasLanded = false;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting hasLanded to FALSE");
+            }
+
+            if (hasLanded && !isSpdManaged && !isHdgManaged && perfWasSet)
+            {
+                perfWasSet = false;
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting perfWasSet to FALSE");
+            }
+
+            float switchAlt = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE");
             if (switchAlt != lastSwitchAlt || isDashed)
             {
                 isAltVsMode = false;
@@ -285,23 +378,21 @@ namespace FenixQuartz
                 Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (VS-Knob)");
             }
             lastSwitchVS = switchVS;           
-
-            bool altManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
-            if (!altManaged && altManaged != lastALTmanaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
+            
+            if (!isAltManaged && isAltManaged != lastALTmanaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
             {
                 isAltVsMode = true;
                 Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Alt-Dot changed and Dashed changed)");
             }
 
-            bool hdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
-            if (hdgManaged != lastHDGmanaged && lastVSdashed != isDashed && !isDashed)
+            if (isHdgManaged != lastHDGmanaged && lastVSdashed != isDashed && !isDashed)
             {
                 isAltVsMode = true;
                 Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Hdg-Dot changed and Dashed changed)");
             }
 
-            lastHDGmanaged = hdgManaged;
-            lastALTmanaged = altManaged;
+            lastHDGmanaged = isHdgManaged;
+            lastALTmanaged = isAltManaged;
             lastVSdashed = isDashed;
 
             if (!App.rawValues)
@@ -328,18 +419,13 @@ namespace FenixQuartz
                 return;
             }
 
-            bool isModeTrkFpa = IPCManager.SimConnect.ReadLvar("I_FCU_TRACK_FPA_MODE") == 1;
             bool isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
-            bool isFcuPowered = isModeHdgVs || isModeTrkFpa;
             bool isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
-            bool isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
-            bool isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
-            bool isAltManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
             bool isAltHundred = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE_SCALE") == 0;
             
             //SPEED
             string result = "";
-            if (isFcuPowered)
+            if (fcuIsPowered)
             {
                 if (isLightTest)
                 {
@@ -382,7 +468,7 @@ namespace FenixQuartz
 
             //HDG
             result = "";
-            if (isFcuPowered)
+            if (fcuIsPowered)
             {
                 if (isLightTest)
                 {
@@ -426,7 +512,7 @@ namespace FenixQuartz
 
             //ALT
             result = "";
-            if (isFcuPowered)
+            if (fcuIsPowered)
             {
                 if (isLightTest)
                     result = "88888*";
@@ -443,7 +529,7 @@ namespace FenixQuartz
 
             //VS
             result = "";
-            if (isFcuPowered)
+            if (fcuIsPowered)
             {
                 if (isLightTest)
                 {
@@ -463,7 +549,7 @@ namespace FenixQuartz
                     }
 
                     int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-                    if (isAltVsMode)
+                    if (isAltVsMode && !fcuNotInitialized)
                     {
                         vs = MemoryValues["fcuVs"].GetValue() ?? 0;
                     }
@@ -542,7 +628,7 @@ namespace FenixQuartz
             float vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
             if (!MemoryValues["fcuVsDashed"].GetValue())
             {
-                if (isAltVsMode)
+                if (isAltVsMode && !fcuNotInitialized)
                     vs = MemoryValues["fcuVs"].GetValue() ?? 0;
                 if (!isModeHdgVs)
                     vs = (float)Math.Round(vs / 1000.0f, 1);
@@ -769,6 +855,31 @@ namespace FenixQuartz
             {
                 IPCValues[numName].SetValue(num);
             }
+        }
+
+        private void UpdateToSpeeds()
+        {
+            int v1 = MemoryValues["speedV1-1"].GetValue() ?? -1;
+            int vr = MemoryValues["speedVR-1"].GetValue() ?? -1;
+            int v2 = MemoryValues["speedV2-1"].GetValue() ?? -1;
+
+            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            {
+                v1 = MemoryValues["speedV1-2"].GetValue() ?? 0;
+                vr = MemoryValues["speedVR-2"].GetValue() ?? 0;
+                v2 = MemoryValues["speedV2-2"].GetValue() ?? 0;
+            }
+
+            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            {
+                v1 = MemoryValues["speedV1-3"].GetValue() ?? 0;
+                vr = MemoryValues["speedVR-3"].GetValue() ?? 0;
+                v2 = MemoryValues["speedV2-3"].GetValue() ?? 0;
+            }
+
+            IPCValues["speedV1"].SetValue(v1);
+            IPCValues["speedVR"].SetValue(vr);
+            IPCValues["speedV2"].SetValue(v2);
         }
 
         public void PrintReport()

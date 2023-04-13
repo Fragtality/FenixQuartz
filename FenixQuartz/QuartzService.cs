@@ -10,7 +10,7 @@ namespace FenixQuartz
 {
     public class QuartzService
     {
-        private ElementManager elementManager = null;
+        public ElementManager elementManager = null;
         public List<OutputDefinition> Definitions = null;
 
         public void Run()
@@ -130,6 +130,7 @@ namespace FenixQuartz
 
             try
             {
+                Thread.Sleep(300);
                 while (!App.CancellationRequested && !App.RestartRequested && IPCManager.IsProcessRunning(App.FenixExecutable) && IPCManager.IsSimRunning())
                 {
                     watch.Start();
@@ -140,7 +141,7 @@ namespace FenixQuartz
                         break;
                     }
 
-                    if (App.useLvars && measures % 40 == 0)
+                    if (App.useLvars && measures % 50 == 0 || !App.useLvars && measures % 1000 == 0)
                     {
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
@@ -176,6 +177,12 @@ namespace FenixQuartz
             {
                 output.AppendLine(value.ToString());
             }
+
+            output.AppendLine("");
+            output.AppendLine("TO Speeds (always L-Vars):");
+            output.AppendLine(App.lvarPrefix + "speedV1");
+            output.AppendLine(App.lvarPrefix + "speedVR");
+            output.AppendLine(App.lvarPrefix + "speedV2");
 
             File.WriteAllText("Assignments.txt", output.ToString());
         }

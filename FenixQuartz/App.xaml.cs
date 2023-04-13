@@ -12,8 +12,9 @@ namespace FenixQuartz
 {
     public partial class App : Application
     {
+        public static readonly bool devGUI = Convert.ToBoolean(ConfigurationManager.AppSettings["debugGUI"]);
         public static readonly string FenixExecutable = Convert.ToString(ConfigurationManager.AppSettings["FenixExecutable"]) ?? "FenixSystem";
-        public static readonly string logFilePath = Convert.ToString(ConfigurationManager.AppSettings["logFilePath"]) ?? "FNX2PLD.log";
+        public static readonly string logFilePath = Convert.ToString(ConfigurationManager.AppSettings["logFilePath"]) ?? "FenixQuartz.log";
         public static readonly string logLevel = Convert.ToString(ConfigurationManager.AppSettings["logLevel"]) ?? "Debug";
         public static readonly bool waitForConnect = Convert.ToBoolean(ConfigurationManager.AppSettings["waitForConnect"]);
         public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
@@ -32,7 +33,7 @@ namespace FenixQuartz
         public static bool ServiceExited { get; set; } = false;
 
         private TaskbarIcon notifyIcon;
-        private QuartzService Service;
+        public static QuartzService Service;
         
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -50,6 +51,8 @@ namespace FenixQuartz
             };
             timer.Tick += OnTick;
             timer.Start();
+
+            MainWindow = new MainWindow();
         }
 
         protected override void OnExit(ExitEventArgs e)

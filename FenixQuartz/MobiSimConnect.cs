@@ -1,7 +1,7 @@
 ﻿using Microsoft.FlightSimulator.SimConnect;
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 
 namespace FenixQuartz
