@@ -25,7 +25,7 @@ If you want to let it start automatically, you can add this to your FSUIPC7.ini:
 [Programs]
 RunIf1=READY,KILL,X:\PATH\YOU\USED\FenixQuartz.exe
 ```
-(It is in the Folder where FSUIPC was installed to. Remember to change the Path to the Binary)<br/>
+The ini-File is in the Folder where FSUIPC was installed to, remember to change the Path to the Binary. If there are multiple RunIf-Entries, make sure they are numbered uniquely and that the [Programs] Section only exists once.<br/>
 Works well for my Setup!
 
 <br/><br/>
