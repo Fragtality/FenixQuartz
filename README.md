@@ -1,4 +1,5 @@
 # FenixQuartz
+<img src="img/icon.png" width="196"><br/>
 This Tools extracts the Values of some important Quartz Displays of the Fenix (hence the Name) directly from Memory. The Values/Output can then be written to FSUIPC-Offsets as either String (default) or Numbers but can also be written to L-Vars. There they can be picked up from other Applications, like my StreamDeck Plugin and the Fenix Profile/Integration for that.<br/>
 So it is literally an **HACK**: It accesses the Process Memory directly (read-only!) to get the Data. It will likely break with the next Update (until I'll managed to find the correct Spots again).<br/>Currently compatible with Fenix Version **1.0.6.146** and MSFS **SU12**.<br/><br/>
 Following Display-Values are available:
