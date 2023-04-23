@@ -49,6 +49,8 @@ namespace FenixQuartz
                 isisBaro1.Content = values["isisBaro1"].GetValue() ?? 0;
                 isisStd2.Content = values["isisStd2"].GetValue() ?? 0;
                 isisBaro2.Content = values["isisBaro2"].GetValue() ?? 0;
+                isisStd3.Content = values["isisStd3"].GetValue() ?? 0;
+                isisBaro3.Content = values["isisBaro3"].GetValue() ?? 0;
 
                 com1Active.Content = values["com1Active"].GetValue() ?? 0;
                 com1Standby.Content = values["com1Standby"].GetValue() ?? 0;
@@ -68,6 +70,7 @@ namespace FenixQuartz
                 rudderDisplay1.Content = values["rudderDisplay1"].GetValue() ?? 0;
                 rudderDisplay2.Content = values["rudderDisplay2"].GetValue() ?? 0;
                 rudderDisplay3.Content = values["rudderDisplay3"].GetValue() ?? 0;
+                rudderDisplay4.Content = values["rudderDisplay4"].GetValue() ?? 0;
 
                 clockCHR.Content = values["clockCHR"].GetValue() ?? 0;
                 clockET.Content = values["clockET"].GetValue() ?? 0;
@@ -81,8 +84,14 @@ namespace FenixQuartz
                 speedV1_3.Content = values["speedV1-3"].GetValue() ?? 0;
                 speedVR_3.Content = values["speedVR-3"].GetValue() ?? 0;
                 speedV2_3.Content = values["speedV2-3"].GetValue() ?? 0;
+                speedV1_4.Content = values["speedV1-4"].GetValue() ?? 0;
+                speedVR_4.Content = values["speedVR-4"].GetValue() ?? 0;
+                speedV2_4.Content = values["speedV2-4"].GetValue() ?? 0;
 
-                
+                speedVAPP_1.Content = values["speedVAPP-1"].GetValue() ?? 0;
+                speedVAPP_2.Content = values["speedVAPP-2"].GetValue() ?? 0;
+                speedVAPP_3.Content = values["speedVAPP-3"].GetValue() ?? 0;
+                speedVAPP_4.Content = values["speedVAPP-4"].GetValue() ?? 0;
             }
         }
 

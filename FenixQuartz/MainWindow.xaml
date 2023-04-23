@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FenixQuartz"
         mc:Ignorable="d"
-        Title="Debug UI" Height="532" Width="432" IsVisibleChanged="Window_IsVisibleChanged" Closing="Window_Closing">
+        Title="Debug UI" Height="564" Width="432" IsVisibleChanged="Window_IsVisibleChanged" Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -84,6 +84,14 @@
                 <Label>isisBaro2</Label>
                 <Label Name="isisBaro2"></Label>
             </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisStd3</Label>
+                <Label Name="isisStd3"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>isisBaro3</Label>
+                <Label Name="isisBaro3"></Label>
+            </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Vertical" Grid.Column="1">
             <StackPanel Orientation="Horizontal">
@@ -135,6 +143,10 @@
                 <Label Name="rudderDisplay3"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>rudderDisplay4</Label>
+                <Label Name="rudderDisplay4"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>clockCHR</Label>
                 <Label Name="clockCHR"></Label>
             </StackPanel>
@@ -143,22 +155,32 @@
                 <Label Name="clockET"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Label>speedV1-(1-3)</Label>
+                <Label>speedV1-(1-4)</Label>
                 <Label Name="speedV1_1"></Label>
                 <Label Name="speedV1_2"></Label>
                 <Label Name="speedV1_3"></Label>
+                <Label Name="speedV1_4"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Label>speedVR-(1-3)</Label>
+                <Label>speedVR-(1-4)</Label>
                 <Label Name="speedVR_1"></Label>
                 <Label Name="speedVR_2"></Label>
                 <Label Name="speedVR_3"></Label>
+                <Label Name="speedVR_4"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Label>speedV2-(1-3)</Label>
+                <Label>speedV2-(1-4)</Label>
                 <Label Name="speedV2_1"></Label>
                 <Label Name="speedV2_2"></Label>
                 <Label Name="speedV2_3"></Label>
+                <Label Name="speedV2_4"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedVAPP-(1-4)</Label>
+                <Label Name="speedVAPP_1"></Label>
+                <Label Name="speedVAPP_2"></Label>
+                <Label Name="speedVAPP_3"></Label>
+                <Label Name="speedVAPP_4"></Label>
             </StackPanel>
         </StackPanel>
     </Grid>

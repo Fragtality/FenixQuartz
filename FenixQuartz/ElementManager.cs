@@ -23,7 +23,6 @@ namespace FenixQuartz
 
         public bool lastVSdashed = false;
         public int lastVSval = 0;
-        //public float lastVSpos = 0;
         public bool lastALTmanaged = false;
         public bool lastHDGmanaged = false;
         public bool isAltVsMode = false;
@@ -49,6 +48,7 @@ namespace FenixQuartz
                 { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
+                { "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
                 { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
                 { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
@@ -57,6 +57,8 @@ namespace FenixQuartz
                 { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
                 { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
+                { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+            
             };
 
             InitializeScanner();
@@ -80,6 +82,8 @@ namespace FenixQuartz
             AddMemoryValue("isisBaro1", MemoryPatterns["ISIS-1"], -0xEC, 8, "double");
             AddMemoryValue("isisStd2", MemoryPatterns["ISIS-1"], -0xDF, 1, "bool");
             AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
+            AddMemoryValue("isisStd3", MemoryPatterns["ISIS-2"], -0x3F, 1, "bool");
+            AddMemoryValue("isisBaro3", MemoryPatterns["ISIS-2"], -0x64, 8, "double");
 
             //COM1
             AddMemoryValue("com1Standby", MemoryPatterns["FCU-2"], +0x45C, 4, "int");
@@ -101,13 +105,14 @@ namespace FenixQuartz
 
                 //BAT2
                 AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
-                AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
+                AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double"); //same as +89C to pattern 2-1?
             }
 
             //RUDDER
             AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
             AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-1"], 0xBCE, 8, "double");
             AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
+            AddMemoryValue("rudderDisplay4", MemoryPatterns["RUDDER-1"], 0xB6E, 8, "double");
 
             //CHR / ET
             AddMemoryValue("clockCHR", MemoryPatterns["FCU-2"], -0x54, 4, "int");
@@ -123,7 +128,15 @@ namespace FenixQuartz
             AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int");
             AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x588, 4, "int");
             AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x580, 4, "int");
+            AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAA8, 4, "int");
+            AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAB8, 4, "int");
+            AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAB0, 4, "int");
 
+            //VAPP manual
+            AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0x698, 4, "int"); //6A0?
+            AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x698, 4, "int"); //6A0 -
+            AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x698, 4, "int"); //6A0?
+            AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xBC8, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
@@ -149,6 +162,7 @@ namespace FenixQuartz
             AddIpcLvar("speedV1");
             AddIpcLvar("speedVR");
             AddIpcLvar("speedV2");
+            AddIpcLvar("speedVAPP");
 
             IPCManager.SimConnect.SubscribeSimVar("SIM ON GROUND", "Bool");
             IPCManager.SimConnect.SubscribeLvar("S_OH_IN_LT_ANN_LT");
@@ -247,6 +261,7 @@ namespace FenixQuartz
             if (alt < 100 || alt > 49000 || spd < 0 || spd > 401 || hdg < 0 || hdg > 361)
             {
                 Logger.Log(LogLevel.Information, "ElementManager:CheckFCU", $"Memory Locations changed (FCU-Check)! Rescanning ...");
+                System.Threading.Thread.Sleep(500);
                 Rescan();
             }
         }
@@ -262,6 +277,7 @@ namespace FenixQuartz
             if (!firstUpdate && !perfWasSet && isSpdManaged)
             {
                 Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD changed to managed)! Rescanning ...");
+                System.Threading.Thread.Sleep(500);
                 Rescan();
                 perfWasSet = true;
             }
@@ -299,7 +315,7 @@ namespace FenixQuartz
                     UpdateBatteries();
                 UpdateRudder();
                 UpdateClock();
-                UpdateToSpeeds();
+                UpdateSpeeds();
 
                 if (!App.useLvars)
                     FSUIPCConnection.Process(App.groupName);
@@ -652,6 +668,11 @@ namespace FenixQuartz
             {
                 baro = MemoryValues["isisBaro2"].GetValue();
                 std = MemoryValues["isisStd2"].GetValue();
+                if (baro < 800 || baro > 1200)
+                {
+                    baro = MemoryValues["isisBaro3"].GetValue();
+                    std = MemoryValues["isisStd3"].GetValue();
+                }
             }
 
             if (!App.rawValues)
@@ -789,7 +810,7 @@ namespace FenixQuartz
                 IPCValues["bat1"].SetValue((float)Math.Round(value,1));
 
             value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
-            if (value == 0.0 || MemoryValues["bat2Display1"].IsTinyValue())
+            if (value == 0.0 || MemoryValues["bat2Display1"].IsTinyValue() || double.IsNaN(value))
                 value = MemoryValues["bat2Display2"].GetValue() ?? 0.0;
 
             if (value != 0)
@@ -801,14 +822,51 @@ namespace FenixQuartz
             }
         }
 
-        private void UpdateRudder()
+        private bool IsRudderValueValid(string index)
         {
-            double value = MemoryValues["rudderDisplay1"].GetValue();
-            if (MemoryValues["rudderDisplay1"].IsTinyValue())
+            double value = MemoryValues[index].GetValue() ?? double.NaN;
+            return !double.IsNaN(value) && !MemoryValues[index].IsTinyValue() && value >= -20.0 && value <= 20.0;
+        }
+
+        private void UpdateRudder()
+        { 
+            double disp1 = MemoryValues["rudderDisplay1"].GetValue() ?? double.NaN;
+            bool disp1Valid = IsRudderValueValid("rudderDisplay1");
+            double disp2 = MemoryValues["rudderDisplay2"].GetValue() ?? double.NaN;
+            bool disp2Valid = IsRudderValueValid("rudderDisplay2");
+            double disp3 = MemoryValues["rudderDisplay3"].GetValue() ?? double.NaN;
+            bool disp3Valid = IsRudderValueValid("rudderDisplay3");
+            double disp4 = MemoryValues["rudderDisplay4"].GetValue() ?? double.NaN;
+            bool disp4Valid = IsRudderValueValid("rudderDisplay4");
+
+            double value = 0.0;
+            if (disp1Valid)
             {
-                value = MemoryValues["rudderDisplay2"].GetValue();
-                if (MemoryValues["rudderDisplay2"].IsTinyValue())
-                    value = MemoryValues["rudderDisplay3"].GetValue();
+                value = disp1;
+                if (disp2Valid && value == 0.0 && disp2 != 0.0)
+                    value = disp2;
+                else if (disp3Valid && value == 0.0 && disp3 != 0.0)
+                    value = disp3;
+                else if (disp4Valid && value == 0.0 && disp4 != 0.0)
+                    value = disp4;
+            }
+            else if (disp2Valid)
+            {
+                value = disp2;
+                if (disp3Valid && value == 0.0 && disp3 != 0.0)
+                    value = disp3;
+                else if (disp4Valid && value == 0.0 && disp4 != 0.0)
+                    value = disp4;
+            }
+            else if (disp3Valid)
+            {
+                value = disp3;
+                if (disp4Valid && value == 0.0 && disp4 != 0.0)
+                    value = disp4;
+            }
+            else if (disp4Valid)
+            {
+                value = disp4;
             }
 
             value = Math.Round(value, 2);
@@ -857,17 +915,19 @@ namespace FenixQuartz
             }
         }
 
-        private void UpdateToSpeeds()
+        private void UpdateSpeeds()
         {
-            int v1 = MemoryValues["speedV1-1"].GetValue() ?? -1;
-            int vr = MemoryValues["speedVR-1"].GetValue() ?? -1;
-            int v2 = MemoryValues["speedV2-1"].GetValue() ?? -1;
+            int v1 = MemoryValues["speedV1-1"].GetValue() ?? 0;
+            int vr = MemoryValues["speedVR-1"].GetValue() ?? 0;
+            int v2 = MemoryValues["speedV2-1"].GetValue() ?? 0;
+            int vapp = MemoryValues["speedVAPP-1"].GetValue() ?? -1;
 
             if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
             {
                 v1 = MemoryValues["speedV1-2"].GetValue() ?? 0;
                 vr = MemoryValues["speedVR-2"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-2"].GetValue() ?? 0;
+                vapp = MemoryValues["speedVAPP-2"].GetValue() ?? -1;
             }
 
             if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
@@ -875,11 +935,21 @@ namespace FenixQuartz
                 v1 = MemoryValues["speedV1-3"].GetValue() ?? 0;
                 vr = MemoryValues["speedVR-3"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-3"].GetValue() ?? 0;
+                vapp = MemoryValues["speedVAPP-3"].GetValue() ?? -1;
+            }
+
+            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            {
+                v1 = MemoryValues["speedV1-4"].GetValue() ?? 0;
+                vr = MemoryValues["speedVR-4"].GetValue() ?? 0;
+                v2 = MemoryValues["speedV2-4"].GetValue() ?? 0;
+                vapp = MemoryValues["speedVAPP-4"].GetValue() ?? -1;
             }
 
             IPCValues["speedV1"].SetValue(v1);
             IPCValues["speedVR"].SetValue(vr);
             IPCValues["speedV2"].SetValue(v2);
+            IPCValues["speedVAPP"].SetValue(vapp);
         }
 
         public void PrintReport()
