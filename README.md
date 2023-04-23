@@ -17,7 +17,8 @@ Following Display-Values are available:
 # Installation
 - Put the Folder/Binary generally anywhere you want, but *don't* use: Any Application's Folder (e.g. MSFS, Fenix, StreamDeck) or any of the User Folders (Documents, Downloads, etc) and above all not C:\\
 - If you're upgrading from a Version before **0.9**, please delete all old Files before unpacking the new Version! (To avoid DLL conflicts)
-- It is currently compiled for .NET **7**, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64. (Do not confuse it with arm64!)
+- It is currently compiled for .NET **7**, you'll probably need to download the according Runtimes (Download [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)). You'll need ".NET Runtime 7.0.x" and ".NET Desktop Runtime 7.0.x" as x64 (Do not confuse it with arm64!).<br/>
+Reboot when installing the Runtimes for the first Time. You can check if the Runtimes are correctly installed with the Command `dotnet --list-runtimes`
 - You need at least FSUIPC7 Version **7.3.19** - but only if Offsets are used. If the L-Var Output is used, FSUIPC is not requried anymore.
 - You also need to install the WASM Module from [MobiFlight](https://github.com/MobiFlight/MobiFlight-WASM-Module/releases) (Put it in your Community Folder)
 
