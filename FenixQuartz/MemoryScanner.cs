@@ -49,7 +49,7 @@ namespace FenixQuartz
         
         public static readonly int PROCESS_QUERY_INFORMATION = 0x0400;
         public static readonly int PROCESS_VM_READ = 0x0010;
-        public static readonly int ChunkSize = 256 * 256;
+        public static readonly int ChunkSize = 384 * 384;
 
         private int procHandle = 0;
         private Process process;

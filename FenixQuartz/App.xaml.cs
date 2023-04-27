@@ -57,17 +57,20 @@ namespace FenixQuartz
 
         protected override void OnExit(ExitEventArgs e)
         {
+            Logger.Log(LogLevel.Information, "App:OnExit", "FenixQuartz exiting ...");
+
             CancellationRequested = true;
             notifyIcon?.Dispose();
             base.OnExit(e);
-
-            Logger.Log(LogLevel.Information, "App:OnExit", "FenixQuartz exiting ...");
         }
 
         protected void OnTick(object sender, EventArgs e)
         {
             if (ServiceExited)
+            {
+                Logger.Log(LogLevel.Information, "App:OnTick", "Received Signal that Service has exited");
                 Current.Shutdown();
+            }
         }
 
         protected static void InitLog()
@@ -90,7 +93,7 @@ namespace FenixQuartz
             Logger.Log(LogLevel.Information, "App:InitSystray", $"Creating SysTray Icon ...");
             notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
             notifyIcon.Icon = GetIcon("quartz.ico");
-            notifyIcon.ForceCreate();
+            notifyIcon.ForceCreate(false);
         }
 
         public static Icon GetIcon(string filename)

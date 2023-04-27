@@ -147,6 +147,10 @@
                 <Label Name="rudderDisplay4"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>rudderDisplay5</Label>
+                <Label Name="rudderDisplay5"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>clockCHR</Label>
                 <Label Name="clockCHR"></Label>
             </StackPanel>

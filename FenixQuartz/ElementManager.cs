@@ -35,6 +35,8 @@ namespace FenixQuartz
         public bool perfWasSet = false;
         public bool simOnGround = true;
         public bool hasLanded = false;
+        public bool xpdrWasCleared = false;
+        public int xpdrClearedCounter = 0;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
@@ -113,6 +115,7 @@ namespace FenixQuartz
             AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-1"], 0xBCE, 8, "double");
             AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
             AddMemoryValue("rudderDisplay4", MemoryPatterns["RUDDER-1"], 0xB6E, 8, "double");
+            AddMemoryValue("rudderDisplay5", MemoryPatterns["RUDDER-1"], 0xB46, 8, "double");
 
             //CHR / ET
             AddMemoryValue("clockCHR", MemoryPatterns["FCU-2"], -0x54, 4, "int");
@@ -781,12 +784,37 @@ namespace FenixQuartz
         private void UpdateXpdr()
         {
             string result;
-            int value = MemoryValues["xpdrInput"].GetValue() ?? 0;
+            int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
+            int disp = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
 
-            if (value <= 0)
-                value = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
+            if (input == -1 && !xpdrWasCleared)
+            {
+                Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"XPDR was cleared");
+                xpdrWasCleared = true;
+            }
+            else if (input != -1 && xpdrWasCleared)
+            {
+                Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"Reset XPDR cleared");
+                xpdrWasCleared = false;
+                xpdrClearedCounter = 0;
+            }
 
-            result = value.ToString();
+            if (input == -1 && xpdrWasCleared && xpdrClearedCounter < 100)
+            {
+                xpdrClearedCounter++;
+                result = "";
+            }
+            else if (input == -1 && xpdrClearedCounter >= 100)
+            {
+                result = disp.ToString();
+            }
+            else if ((input < -1 || input > 7777 || input == 0) && disp != 0)
+            {
+                result = disp.ToString();
+            }
+            else
+                result = input.ToString();
+
 
             if (!App.rawValues)
                 IPCValues["xpdrStr"].SetValue(result);
@@ -794,6 +822,8 @@ namespace FenixQuartz
             {
                 if (short.TryParse(result, out short shortValue))
                     IPCValues["xpdr"].SetValue(shortValue);
+                else if (result == "")
+                    IPCValues["xpdr"].SetValue((short)-1);
                 else
                 {
                     IPCValues["xpdr"].SetValue((short)0);
@@ -838,6 +868,8 @@ namespace FenixQuartz
             bool disp3Valid = IsRudderValueValid("rudderDisplay3");
             double disp4 = MemoryValues["rudderDisplay4"].GetValue() ?? double.NaN;
             bool disp4Valid = IsRudderValueValid("rudderDisplay4");
+            double disp5 = MemoryValues["rudderDisplay5"].GetValue() ?? double.NaN;
+            bool disp5Valid = IsRudderValueValid("rudderDisplay5");
 
             double value = 0.0;
             if (disp1Valid)
@@ -849,6 +881,8 @@ namespace FenixQuartz
                     value = disp3;
                 else if (disp4Valid && value == 0.0 && disp4 != 0.0)
                     value = disp4;
+                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
+                    value = disp5;
             }
             else if (disp2Valid)
             {
@@ -857,16 +891,26 @@ namespace FenixQuartz
                     value = disp3;
                 else if (disp4Valid && value == 0.0 && disp4 != 0.0)
                     value = disp4;
+                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
+                    value = disp5;
             }
             else if (disp3Valid)
             {
                 value = disp3;
                 if (disp4Valid && value == 0.0 && disp4 != 0.0)
                     value = disp4;
+                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
+                    value = disp5;
             }
             else if (disp4Valid)
             {
                 value = disp4;
+                if (disp5Valid && value == 0.0 && disp5 != 0.0)
+                    value = disp5;
+            }
+            else if (disp5Valid)
+            {
+                value = disp5;
             }
 
             value = Math.Round(value, 2);

@@ -15,7 +15,7 @@ namespace FenixQuartz
                 if (!Application.Current.MainWindow.IsVisible)
                     Application.Current.MainWindow.Show(disableEfficiencyMode: true);
                 else
-                    Application.Current.MainWindow.Hide();
+                    Application.Current.MainWindow.Hide(enableEfficiencyMode: false);
             }
         }
 

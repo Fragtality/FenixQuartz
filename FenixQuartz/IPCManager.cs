@@ -41,7 +41,7 @@ namespace FenixQuartz
         public static bool IsProcessRunning(string name)
         {
             Process proc = Process.GetProcessesByName(name).FirstOrDefault();
-            return proc != null;
+            return proc != null && proc.ProcessName == name;
         }
 
         public static bool IsSimRunning()

@@ -19,6 +19,7 @@ namespace FenixQuartz
             {
                 WriteAssignmentFile();
 
+                Logger.Log(LogLevel.Information, "QuartzService:Run", $"Entering Service Loop ...");
                 while (!App.CancellationRequested)
                 {
                     if (Wait() && InitializeSession())
@@ -170,6 +171,7 @@ namespace FenixQuartz
 
         public void WriteAssignmentFile()
         {
+            Logger.Log(LogLevel.Information, "QuartzService:WriteAssignmentFile", $"Writing Assignments.txt File ...");
             Definitions = OutputDefinition.CreateDefinitions();
             StringBuilder output = new();
 

@@ -71,6 +71,7 @@ namespace FenixQuartz
                 rudderDisplay2.Content = values["rudderDisplay2"].GetValue() ?? 0;
                 rudderDisplay3.Content = values["rudderDisplay3"].GetValue() ?? 0;
                 rudderDisplay4.Content = values["rudderDisplay4"].GetValue() ?? 0;
+                rudderDisplay5.Content = values["rudderDisplay5"].GetValue() ?? 0;
 
                 clockCHR.Content = values["clockCHR"].GetValue() ?? 0;
                 clockET.Content = values["clockET"].GetValue() ?? 0;
