@@ -35,6 +35,9 @@ namespace FenixQuartz
         public bool perfWasSet = false;
         public bool simOnGround = true;
         public bool hasLanded = false;
+        public int speedV1 = 0;
+        public int speedVR = 0;
+        public int speedV2 = 0;
         public bool xpdrWasCleared = false;
         public int xpdrClearedCounter = 0;
 
@@ -277,9 +280,9 @@ namespace FenixQuartz
                 perfWasSet = true;
             }
 
-            if (!firstUpdate && !perfWasSet && isSpdManaged)
+            if (!firstUpdate && !perfWasSet && isSpdManaged && isHdgManaged)
             {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD changed to managed)! Rescanning ...");
+                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD & HDG are managed)! Rescanning ...");
                 System.Threading.Thread.Sleep(500);
                 Rescan();
                 perfWasSet = true;
@@ -378,6 +381,9 @@ namespace FenixQuartz
             if (hasLanded && !isSpdManaged && !isHdgManaged && perfWasSet)
             {
                 perfWasSet = false;
+                speedV1 = 0;
+                speedVR = 0;
+                speedV2 = 0;
                 Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting perfWasSet to FALSE");
             }
 
@@ -959,6 +965,25 @@ namespace FenixQuartz
             }
         }
 
+        private bool SpeedIsValid(int speed)
+        {
+            return speed >= 80 && speed <= 180;
+        }
+
+        private bool SpeedsAreValid(int v1, int v2, int vr)
+        {
+            return SpeedIsValid(v1) && SpeedIsValid(v2) && SpeedIsValid(vr);
+        }
+
+        private bool SpeedLocationIsValid (string suffix)
+        {
+            int v1 = MemoryValues[$"speedV1-{suffix}"].GetValue() ?? 0;
+            int vr = MemoryValues[$"speedVR-{suffix}"].GetValue() ?? 0;
+            int v2 = MemoryValues[$"speedV2-{suffix}"].GetValue() ?? 0;
+
+            return SpeedsAreValid(v1, v2, vr);
+        }
+
         private void UpdateSpeeds()
         {
             int v1 = MemoryValues["speedV1-1"].GetValue() ?? 0;
@@ -966,28 +991,54 @@ namespace FenixQuartz
             int v2 = MemoryValues["speedV2-1"].GetValue() ?? 0;
             int vapp = MemoryValues["speedVAPP-1"].GetValue() ?? -1;
 
-            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            if (!SpeedsAreValid(v1, v2, vr))
             {
                 v1 = MemoryValues["speedV1-2"].GetValue() ?? 0;
                 vr = MemoryValues["speedVR-2"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-2"].GetValue() ?? 0;
                 vapp = MemoryValues["speedVAPP-2"].GetValue() ?? -1;
             }
+            else
+            {
+                speedV1 = v1;
+                speedVR = vr;
+                speedV2 = v2;
+            }
 
-            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            if (!SpeedsAreValid(v1, v2, vr))
             {
                 v1 = MemoryValues["speedV1-3"].GetValue() ?? 0;
                 vr = MemoryValues["speedVR-3"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-3"].GetValue() ?? 0;
                 vapp = MemoryValues["speedVAPP-3"].GetValue() ?? -1;
             }
+            else
+            {
+                speedV1 = v1;
+                speedVR = vr;
+                speedV2 = v2;
+            }
 
-            if (v1 < 80 || v1 > 180 || vr < 80 || vr > 180 || v2 < 80 || v2 > 180)
+            if (!SpeedsAreValid(v1, v2, vr))
             {
                 v1 = MemoryValues["speedV1-4"].GetValue() ?? 0;
                 vr = MemoryValues["speedVR-4"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-4"].GetValue() ?? 0;
                 vapp = MemoryValues["speedVAPP-4"].GetValue() ?? -1;
+            }
+            else
+            {
+                speedV1 = v1;
+                speedVR = vr;
+                speedV2 = v2;
+            }
+
+            if (!SpeedsAreValid(v1, v2, vr) && SpeedsAreValid(speedV1, speedV2, speedVR))
+            {
+                v1 = speedV1;
+                vr = speedVR;
+                v2 = speedV2;
+                vapp = -1;
             }
 
             IPCValues["speedV1"].SetValue(v1);

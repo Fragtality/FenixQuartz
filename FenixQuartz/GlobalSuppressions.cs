@@ -15,3 +15,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE0044:Modifizierer \"readonly\" hinzufügen", Justification = "<Ausstehend>", Scope = "member", Target = "~F:FenixQuartz.MemoryScanner.procHandle")]
 [assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.RestartScanner")]
 [assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.ExitApplication")]
+[assembly: SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.ShowWindow")]
