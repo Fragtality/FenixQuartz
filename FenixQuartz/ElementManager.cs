@@ -708,7 +708,7 @@ namespace FenixQuartz
             }
             else
             {
-                IPCValues["isisStd"].SetValue(std);
+                IPCValues["isisStd"].SetValue(std ? (byte)1 : (byte)0);
                 IPCValues["isisBaro"].SetValue((float)baro);
             }
         }
