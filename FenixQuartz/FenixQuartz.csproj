@@ -9,9 +9,9 @@
     <IsPublishable>True</IsPublishable>
     <PlatformTarget>x64</PlatformTarget>
     <SignAssembly>False</SignAssembly>
-    <AssemblyVersion>1.1</AssemblyVersion>
-    <FileVersion>1.1</FileVersion>
-    <Version>1.1</Version>
+    <AssemblyVersion>1.2</AssemblyVersion>
+    <FileVersion>1.2</FileVersion>
+    <Version>1.2</Version>
     <Copyright>Fragtality © 2023</Copyright>
     <Authors>Fragtality</Authors>
     <UseWPF>True</UseWPF>
@@ -32,10 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="FSUIPCClientDLL" Version="3.3.6" />
-    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.108" />
-    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.115" />
+    <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
   </ItemGroup>

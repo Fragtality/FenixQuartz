@@ -59,9 +59,9 @@ namespace FenixQuartz
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
-                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
+                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
+                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
                 { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
             
             };
@@ -128,21 +128,21 @@ namespace FenixQuartz
             AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0x578, 4, "int");
             AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0x588, 4, "int");
             AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0x580, 4, "int");
-            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x578, 4, "int");
-            AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x588, 4, "int");
-            AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x580, 4, "int");
+            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int");
+            AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
+            AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
             AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int");
             AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x588, 4, "int");
             AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x580, 4, "int");
-            AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAA8, 4, "int");
-            AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAB8, 4, "int");
-            AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAB0, 4, "int");
+            AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
+            AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAF8, 4, "int");
+            AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAF0, 4, "int");
 
             //VAPP manual
             AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0x698, 4, "int"); //6A0?
-            AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x698, 4, "int"); //6A0 -
+            AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x6B0, 4, "int"); //6A0 -
             AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x698, 4, "int"); //6A0?
-            AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xBC8, 4, "int");
+            AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xC08, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
