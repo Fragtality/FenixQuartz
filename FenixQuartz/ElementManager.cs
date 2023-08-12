@@ -59,7 +59,7 @@ namespace FenixQuartz
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
+                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 2) },
                 { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
                 { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
                 { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
@@ -125,13 +125,13 @@ namespace FenixQuartz
             AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
 
             //TO Speeds
-            AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0x578, 4, "int");
-            AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0x588, 4, "int");
-            AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0x580, 4, "int");
-            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int");
+            AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0xAB30, 4, "int"); //+0xA5B8
+            AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0xAB40, 4, "int");
+            AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0xAB38, 4, "int");
+            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int"); //+0x18
             AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
             AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
-            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int");
+            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int"); //still needed?
             AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x588, 4, "int");
             AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x580, 4, "int");
             AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
