@@ -131,9 +131,9 @@ namespace FenixQuartz
             AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int"); //+0x18
             AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
             AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
-            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x578, 4, "int"); //still needed?
-            AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x588, 4, "int");
-            AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x580, 4, "int");
+            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x590, 4, "int"); //+0x18
+            AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x5A0, 4, "int");
+            AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x598, 4, "int");
             AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
             AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAF8, 4, "int");
             AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAF0, 4, "int");
