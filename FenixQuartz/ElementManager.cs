@@ -63,7 +63,8 @@ namespace FenixQuartz
                 { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
                 { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
                 { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-            
+                { "MCDU-5", new MemoryPattern("4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40 4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40") },
+
             };
 
             InitializeScanner();
@@ -137,12 +138,16 @@ namespace FenixQuartz
             AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
             AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAF8, 4, "int");
             AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAF0, 4, "int");
+            AddMemoryValue("speedV1-5", MemoryPatterns["MCDU-5"], +0x104, 4, "int"); //+0x40
+            AddMemoryValue("speedVR-5", MemoryPatterns["MCDU-5"], +0x114, 4, "int");
+            AddMemoryValue("speedV2-5", MemoryPatterns["MCDU-5"], +0x10C, 4, "int");
 
             //VAPP manual
-            AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0x698, 4, "int"); //6A0?
+            AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0xAC50, 4, "int"); //6A0?
             AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x6B0, 4, "int"); //6A0 -
-            AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x698, 4, "int"); //6A0?
+            AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x6B0, 4, "int"); //6A0?
             AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xC08, 4, "int");
+            AddMemoryValue("speedVAPP-5", MemoryPatterns["MCDU-5"], +0x224, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
@@ -1025,6 +1030,20 @@ namespace FenixQuartz
                 vr = MemoryValues["speedVR-4"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-4"].GetValue() ?? 0;
                 vapp = MemoryValues["speedVAPP-4"].GetValue() ?? -1;
+            }
+            else
+            {
+                speedV1 = v1;
+                speedVR = vr;
+                speedV2 = v2;
+            }
+
+            if (!SpeedsAreValid(v1, v2, vr))
+            {
+                v1 = MemoryValues["speedV1-5"].GetValue() ?? 0;
+                vr = MemoryValues["speedVR-5"].GetValue() ?? 0;
+                v2 = MemoryValues["speedV2-5"].GetValue() ?? 0;
+                vapp = MemoryValues["speedVAPP-5"].GetValue() ?? -1;
             }
             else
             {
