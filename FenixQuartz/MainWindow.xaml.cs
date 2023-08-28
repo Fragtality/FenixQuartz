@@ -59,6 +59,7 @@ namespace FenixQuartz
 
                 xpdrDisplay.Content = values["xpdrDisplay"].GetValue() ?? 0;
                 xpdrInput.Content = values["xpdrInput"].GetValue() ?? 0;
+                xpdrDigits.Content = values["xpdrDigits"].GetValue() ?? 0;
 
                 if (!App.ignoreBatteries)
                 {
@@ -91,12 +92,16 @@ namespace FenixQuartz
                 speedV1_5.Content = values["speedV1-5"].GetValue() ?? 0;
                 speedVR_5.Content = values["speedVR-5"].GetValue() ?? 0;
                 speedV2_5.Content = values["speedV2-5"].GetValue() ?? 0;
+                speedV1_6.Content = values["speedV1-6"].GetValue() ?? 0;
+                speedVR_6.Content = values["speedVR-6"].GetValue() ?? 0;
+                speedV2_6.Content = values["speedV2-6"].GetValue() ?? 0;
 
                 speedVAPP_1.Content = values["speedVAPP-1"].GetValue() ?? 0;
                 speedVAPP_2.Content = values["speedVAPP-2"].GetValue() ?? 0;
                 speedVAPP_3.Content = values["speedVAPP-3"].GetValue() ?? 0;
                 speedVAPP_4.Content = values["speedVAPP-4"].GetValue() ?? 0;
                 speedVAPP_5.Content = values["speedVAPP-5"].GetValue() ?? 0;
+                speedVAPP_5.Content = values["speedVAPP-6"].GetValue() ?? 0;
             }
         }
 

@@ -60,8 +60,8 @@ namespace FenixQuartz
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
                 { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 2) },
-                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
-                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
+                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
+                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
                 { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
                 { "MCDU-5", new MemoryPattern("4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40 4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40") },
 
@@ -102,6 +102,7 @@ namespace FenixQuartz
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
             AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
+            AddMemoryValue("xpdrDigits", MemoryPatterns["FCU-2"], +0x90C, 2, "int");
 
             //BAT
             if (!App.ignoreBatteries)
@@ -141,6 +142,9 @@ namespace FenixQuartz
             AddMemoryValue("speedV1-5", MemoryPatterns["MCDU-5"], +0x104, 4, "int"); //+0x40
             AddMemoryValue("speedVR-5", MemoryPatterns["MCDU-5"], +0x114, 4, "int");
             AddMemoryValue("speedV2-5", MemoryPatterns["MCDU-5"], +0x10C, 4, "int");
+            AddMemoryValue("speedV1-6", MemoryPatterns["MCDU-2"], -0x14AEC0, 4, "int"); //+0x40
+            AddMemoryValue("speedVR-6", MemoryPatterns["MCDU-2"], -0x14AEB0, 4, "int");
+            AddMemoryValue("speedV2-6", MemoryPatterns["MCDU-2"], -0x14AEB8, 4, "int");
 
             //VAPP manual
             AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0xAC50, 4, "int"); //6A0?
@@ -148,6 +152,7 @@ namespace FenixQuartz
             AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x6B0, 4, "int"); //6A0?
             AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xC08, 4, "int");
             AddMemoryValue("speedVAPP-5", MemoryPatterns["MCDU-5"], +0x224, 4, "int");
+            AddMemoryValue("speedVAPP-6", MemoryPatterns["MCDU-2"], -0x14ADA0, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
@@ -729,7 +734,12 @@ namespace FenixQuartz
 
             if (!App.rawValues)
             {
-                if (courseMode)
+                if (isLightTest)
+                {
+                    IPCValues[$"com{com}ActiveStr"].SetValue("888888");
+                    IPCValues[$"com{com}StandbyStr"].SetValue("888888");
+                }
+                else if (courseMode)
                 {
                     if (valueActive > 0)
                     {
@@ -787,8 +797,16 @@ namespace FenixQuartz
             }
             else
             {
-                IPCValues[$"com{com}Active"].SetValue(valueActive);
-                IPCValues[$"com{com}Standby"].SetValue(valueStandby);
+                if (isLightTest)
+                {
+                    IPCValues[$"com{com}Active"].SetValue(888888);
+                    IPCValues[$"com{com}Standby"].SetValue(888888);
+                }
+                else
+                {
+                    IPCValues[$"com{com}Active"].SetValue(valueActive);
+                    IPCValues[$"com{com}Standby"].SetValue(valueStandby);
+                }
             }
         }
 
@@ -797,49 +815,77 @@ namespace FenixQuartz
             string result;
             int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
             int disp = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
+            int digits = MemoryValues["xpdrDigits"].GetValue() ?? 0;
 
-            if (input == -1 && !xpdrWasCleared)
-            {
-                Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"XPDR was cleared");
-                xpdrWasCleared = true;
-            }
-            else if (input != -1 && xpdrWasCleared)
-            {
-                Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"Reset XPDR cleared");
-                xpdrWasCleared = false;
-                xpdrClearedCounter = 0;
-            }
-
-            if (input == -1 && xpdrWasCleared && xpdrClearedCounter < 100)
-            {
-                xpdrClearedCounter++;
+            if (isLightTest)
+                result = "8888";
+            else if (digits == 0 || MemoryValues[$"com2Active"].GetValue() == -1)
                 result = "";
-            }
-            else if (input == -1 && xpdrClearedCounter >= 100)
-            {
-                result = disp.ToString();
-            }
-            else if ((input < -1 || input > 7777 || input == 0) && disp != 0)
-            {
-                result = disp.ToString();
-            }
+            else if (input != -1 && digits != 4)
+                result = input.ToString($"D{digits}");
+            else if (disp >= 0 && disp <= 7777)
+                result = disp.ToString($"D{digits}");
             else
-                result = input.ToString();
-
+                result = "";
 
             if (!App.rawValues)
                 IPCValues["xpdrStr"].SetValue(result);
             else
             {
-                if (short.TryParse(result, out short shortValue))
-                    IPCValues["xpdr"].SetValue(shortValue);
-                else if (result == "")
+                IPCValues["xpdrDigits"].SetValue(digits);
+                if (result == "")
                     IPCValues["xpdr"].SetValue((short)-1);
+                else if (short.TryParse(result, out short shortValue))
+                    IPCValues["xpdr"].SetValue(shortValue);
                 else
                 {
-                    IPCValues["xpdr"].SetValue((short)0);
+                    IPCValues["xpdr"].SetValue((short)-1);
                 }
             }
+
+            //if (input == -1 && !xpdrWasCleared)
+            //{
+            //    Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"XPDR was cleared");
+            //    xpdrWasCleared = true;
+            //}
+            //else if (input != -1 && xpdrWasCleared)
+            //{
+            //    Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"Reset XPDR cleared");
+            //    xpdrWasCleared = false;
+            //    xpdrClearedCounter = 0;
+            //}
+
+            //if (input == -1 && xpdrWasCleared && xpdrClearedCounter < 100)
+            //{
+            //    xpdrClearedCounter++;
+            //    result = "";
+            //}
+            //else if (input == -1 && xpdrClearedCounter >= 100)
+            //{
+            //    result = disp.ToString();
+            //}
+            //else if ((input < -1 || input > 7777 || input == 0) && disp != 0)
+            //{
+            //    result = disp.ToString();
+            //}
+            //else
+            //    result = input.ToString();            
+
+
+            //if (!App.rawValues)
+            //    IPCValues["xpdrStr"].SetValue(result);
+            //else
+            //{
+            //    IPCValues["xpdrDigits"].SetValue(digits);
+            //    if (short.TryParse(result, out short shortValue))
+            //        IPCValues["xpdr"].SetValue(shortValue);
+            //    else if (result == "")
+            //        IPCValues["xpdr"].SetValue((short)-1);
+            //    else
+            //    {
+            //        IPCValues["xpdr"].SetValue((short)0);
+            //    }
+            //}
         }
 
         private void UpdateBatteries()
@@ -924,18 +970,24 @@ namespace FenixQuartz
                 value = disp5;
             }
 
+            bool power = MemoryValues[$"com2Active"].GetValue() != -1;
             value = Math.Round(value, 2);
             if (!App.rawValues)
             {
-                string space = (Math.Abs(value) >= 10 ? "" : " ");
                 string result;
-                if (value <= -0.1)
-                    result = "L" + space;
-                else if (value >= 0.1)
-                    result = "R" + space;
+                if (power)
+                {
+                    string space = (Math.Abs(value) >= 10 ? "" : " ");
+                    if (value <= -0.1)
+                        result = "L" + space;
+                    else if (value >= 0.1)
+                        result = "R" + space;
+                    else
+                        result = " " + space;
+                    result += string.Format(formatInfo, "{0:F1}", Math.Abs(value));
+                }
                 else
-                    result = " " + space;
-                result += string.Format(formatInfo, "{0:F1}", Math.Abs(value));
+                    result = "";
 
                 IPCValues["rudderStr"].SetValue(result);
             }
@@ -959,14 +1011,19 @@ namespace FenixQuartz
 
             if (!App.rawValues)
             {
-                if (num != -1)
+                if (isLightTest)
+                    IPCValues[strName].SetValue("88:88");
+                else if (num != -1)
                     IPCValues[strName].SetValue(string.Format("{0:D2}:{1:D2}", upper, lower));
                 else
                     IPCValues[strName].SetValue("");
             }
             else
             {
-                IPCValues[numName].SetValue(num);
+                if (isLightTest)
+                    IPCValues[numName].SetValue(8888);
+                else
+                    IPCValues[numName].SetValue(num);
             }
         }
 
@@ -1044,6 +1101,20 @@ namespace FenixQuartz
                 vr = MemoryValues["speedVR-5"].GetValue() ?? 0;
                 v2 = MemoryValues["speedV2-5"].GetValue() ?? 0;
                 vapp = MemoryValues["speedVAPP-5"].GetValue() ?? -1;
+            }
+            else
+            {
+                speedV1 = v1;
+                speedVR = vr;
+                speedV2 = v2;
+            }
+
+            if (!SpeedsAreValid(v1, v2, vr))
+            {
+                v1 = MemoryValues["speedV1-6"].GetValue() ?? 0;
+                vr = MemoryValues["speedVR-6"].GetValue() ?? 0;
+                v2 = MemoryValues["speedV2-6"].GetValue() ?? 0;
+                vapp = MemoryValues["speedVAPP-6"].GetValue() ?? -1;
             }
             else
             {

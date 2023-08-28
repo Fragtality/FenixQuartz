@@ -131,6 +131,9 @@ namespace FenixQuartz
                 //CHR + ET
                 definitions.Add(AddIpcOffset("clockChr", "int", 4, ref nextOffset));
                 definitions.Add(AddIpcOffset("clockEt", "int", 4, ref nextOffset));
+
+                //XPDR Digits
+                definitions.Add(AddIpcOffset("xpdrDigits", "short", 2, ref nextOffset));
             }
             //// RAW VALUES (L-Var)
             else
@@ -161,6 +164,7 @@ namespace FenixQuartz
 
                 //XPDR
                 definitions.Add(new OutputDefinition("xpdr"));
+                definitions.Add(new OutputDefinition("xpdrDigits"));
 
                 if (!App.ignoreBatteries)
                 {
