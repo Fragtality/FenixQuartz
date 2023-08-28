@@ -97,6 +97,12 @@ namespace FenixQuartz
                 speedVAPP_3.Content = values["speedVAPP-3"].GetValue() ?? 0;
                 speedVAPP_4.Content = values["speedVAPP-4"].GetValue() ?? 0;
                 speedVAPP_5.Content = values["speedVAPP-5"].GetValue() ?? 0;
+
+                xpdrDigitCount.Content = values["xpdrDigitCount"].GetValue() ?? -1;
+                xpdrDigit1.Content = manager.xpdrDigit1;
+                xpdrDigit2.Content = manager.xpdrDigit2;
+                xpdrDigit3.Content = manager.xpdrDigit3;
+                xpdrDigit4.Content = manager.xpdrDigit4;                
             }
         }
 

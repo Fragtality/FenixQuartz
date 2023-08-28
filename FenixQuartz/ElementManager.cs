@@ -40,6 +40,10 @@ namespace FenixQuartz
         public int speedV2 = 0;
         public bool xpdrWasCleared = false;
         public int xpdrClearedCounter = 0;
+        public int xpdrDigit1 = 0;
+        public int xpdrDigit2 = 0;
+        public int xpdrDigit3 = 0;
+        public int xpdrDigit4 = 0;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
@@ -102,6 +106,7 @@ namespace FenixQuartz
             //XPDR
             AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
             AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
+            AddMemoryValue("xpdrDigitCount", MemoryPatterns["FCU-2"], 0x090C, 1, "int");
 
             //BAT
             if (!App.ignoreBatteries)
@@ -797,7 +802,7 @@ namespace FenixQuartz
             string result;
             int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
             int disp = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
-
+            int digitCount = MemoryValues["xpdrDigitCount"].GetValue() ?? -1;
             if (input == -1 && !xpdrWasCleared)
             {
                 Logger.Log(LogLevel.Information, "ElementManager:UpdateXpdr", $"XPDR was cleared");
@@ -839,7 +844,43 @@ namespace FenixQuartz
                 {
                     IPCValues["xpdr"].SetValue((short)0);
                 }
+
+                UpdateXpdrDigits(((input < 0 || input > 7777) && digitCount > 0) ? disp : input, digitCount);
             }
+        }
+
+        private void UpdateXpdrDigits(int input, int digitCount)
+        {
+            IPCValues["xpdrDigitCount"].SetValue((short)digitCount);
+            int digit1 = -1, digit2 = -1, digit3 = -1, digit4 = -1;
+            if (digitCount >= 1)
+            {
+                digit1 = input / ((int)Math.Pow(10, digitCount - 1));
+            }
+
+            if (digitCount >= 2)
+            {
+                digit2 = (input / ((int)Math.Pow(10, digitCount - 2)) % 10);
+            }
+
+            if (digitCount >= 3)
+            {
+                digit3 = (input / ((int)Math.Pow(10, digitCount - 3)) % 10);
+            }
+
+            if (digitCount == 4)
+            {
+                digit4 = (input / ((int)Math.Pow(10, digitCount - 4)) % 10);
+            }
+
+            xpdrDigit1 = digit1;
+            xpdrDigit2 = digit2;
+            xpdrDigit3 = digit3;
+            xpdrDigit4 = digit4;
+            IPCValues["xpdrDigit1"].SetValue(digit1);
+            IPCValues["xpdrDigit2"].SetValue(digit2);
+            IPCValues["xpdrDigit3"].SetValue(digit3);
+            IPCValues["xpdrDigit4"].SetValue(digit4);
         }
 
         private void UpdateBatteries()

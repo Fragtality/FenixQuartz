@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FenixQuartz"
         mc:Ignorable="d"
-        Title="Debug UI" Height="564" Width="432" IsVisibleChanged="Window_IsVisibleChanged" Closing="Window_Closing">
+        Title="Debug UI" Height="626" Width="432" IsVisibleChanged="Window_IsVisibleChanged" Closing="Window_Closing">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -119,6 +119,17 @@
                 <Label Name="xpdrInput"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>xpdrDigitCount</Label>
+                <Label Name="xpdrDigitCount"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>xpdrDigits</Label>
+                <Label BorderThickness="1" BorderBrush="DarkGray" Width="30" Name="xpdrDigit1"></Label>
+                <Label BorderThickness="1" BorderBrush="DarkGray" Width="30" Name="xpdrDigit2"></Label>
+                <Label BorderThickness="1" BorderBrush="DarkGray" Width="30" Name="xpdrDigit3"></Label>
+                <Label BorderThickness="1" BorderBrush="DarkGray" Width="30" Name="xpdrDigit4"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">   
                 <Label>bat1Display</Label>
                 <Label Name="bat1Display"></Label>
             </StackPanel>

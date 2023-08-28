@@ -131,6 +131,13 @@ namespace FenixQuartz
                 //CHR + ET
                 definitions.Add(AddIpcOffset("clockChr", "int", 4, ref nextOffset));
                 definitions.Add(AddIpcOffset("clockEt", "int", 4, ref nextOffset));
+
+
+                definitions.Add(AddIpcOffset("xpdrDigitCount", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("xpdrDigit1", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("xpdrDigit2", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("xpdrDigit3", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("xpdrDigit4", "byte", 1, ref nextOffset));
             }
             //// RAW VALUES (L-Var)
             else
@@ -177,6 +184,12 @@ namespace FenixQuartz
                 //CHR + ET
                 definitions.Add(new OutputDefinition("clockChr"));
                 definitions.Add(new OutputDefinition("clockEt"));
+
+                definitions.Add(new OutputDefinition("xpdrDigitCount"));
+                definitions.Add(new OutputDefinition("xpdrDigit1"));
+                definitions.Add(new OutputDefinition("xpdrDigit2"));
+                definitions.Add(new OutputDefinition("xpdrDigit3"));
+                definitions.Add(new OutputDefinition("xpdrDigit4"));
             }
 
 

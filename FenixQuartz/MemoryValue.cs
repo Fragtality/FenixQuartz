@@ -78,13 +78,15 @@ namespace FenixQuartz
                     return BitConverter.ToSingle(valueBuffer, 0);
                 else if (TypeName == "double" && !CastInteger)
                     return BitConverter.ToDouble(valueBuffer, 0);
-                else if (TypeName == "bool" || TypeName == "int" && Size == 1)
+                else if (TypeName == "bool")
                     return BitConverter.ToBoolean(valueBuffer, 0);
                 else if (TypeName == "int")
                     if (Size == 4)
                         return BitConverter.ToInt32(valueBuffer, 0);
-                    else //if (Size == 2)
+                    else if (Size == 2)
                         return BitConverter.ToInt16(valueBuffer, 0);
+                    else
+                        return valueBuffer[0];
                 else if (TypeName == "long")
                     return BitConverter.ToInt64(valueBuffer, 0);
                 else // == string
