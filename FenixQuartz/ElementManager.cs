@@ -20,6 +20,7 @@ namespace FenixQuartz
 
         public float lastSwitchVS;
         public float lastSwitchAlt;
+        public float lastSwitchBaroStd;
 
         public bool lastVSdashed = false;
         public int lastVSval = 0;
@@ -32,14 +33,19 @@ namespace FenixQuartz
         public bool isSpdManaged = false;
         public bool fcuNotInitialized = true;
         public bool fcuIsPowered = false;
-        public bool perfWasSet = false;
+        //public bool perfWasSet = false;
         public bool simOnGround = true;
         public bool hasLanded = false;
         public int speedV1 = 0;
         public int speedVR = 0;
         public int speedV2 = 0;
-        public bool xpdrWasCleared = false;
-        public int xpdrClearedCounter = 0;
+        public int lastPerfButton = 0;
+        public int msSincePerfChange = 0;
+        public bool perfWasScanned = false;
+        public int perfReadTicks = 0;
+        public bool isBaroStd = false;
+        //public bool xpdrWasCleared = false;
+        //public int xpdrClearedCounter = 0;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
@@ -59,12 +65,16 @@ namespace FenixQuartz
                 { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                { "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 2) },
-                { "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
-                { "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00", 3) },
-                { "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                { "MCDU-5", new MemoryPattern("4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40 4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40") },
-
+                ////{ "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 00 ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 2) },
+                //{ "MCDU-1", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 4) },
+                //{ "MCDU-2", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 2) },
+                //{ "MCDU-3", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00", 3) },
+                //{ "MCDU-4", new MemoryPattern("00 00 00 00 10 27 00 00 10 27 00 00 ?? FF FF FF ?? FF FF FF ?? FF FF FF ?? FF FF FF 00 ?? ?? 00 00 00 00 ?? 00 00 00 00 00 00 00 00") },
+                ////{ "MCDU-5", new MemoryPattern("4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40 4E D4 90 C0 38 2B 48 40 47 F7 7B 7B 3A 6B 27 40") },
+                //{ "MCDU-5", new MemoryPattern("1D F9 AD 04 FC F8 42 40 86 75 05 FB C7 F6 37 40 6C 3F 3A F1 AC C0 46 40 3A 9E C7 0F 32 B4 28 40") },
+                //{ "MCDU-X", new MemoryPattern("00 00 00 00 00 00 00 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", 2) },
+                //{ "PERF", new MemoryPattern("00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 39 30 00 00") },
+                { "PERF", new MemoryPattern("00 00 00 00 00 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 39 30 00 00") },
             };
 
             InitializeScanner();
@@ -109,6 +119,7 @@ namespace FenixQuartz
             {
                 //BAT1
                 AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
+                AddMemoryValue("bat1Display21", MemoryPatterns["BAT2-1"], -0x2B4C, 8, "double");
 
                 //BAT2
                 AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
@@ -127,32 +138,51 @@ namespace FenixQuartz
             AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
 
             //TO Speeds
-            AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0xAB30, 4, "int"); //+0xA5B8
-            AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0xAB40, 4, "int");
-            AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0xAB38, 4, "int");
-            AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int"); //+0x18
-            AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
-            AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
-            AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x590, 4, "int"); //+0x18
-            AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x5A0, 4, "int");
-            AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x598, 4, "int");
-            AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
-            AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAF8, 4, "int");
-            AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAF0, 4, "int");
-            AddMemoryValue("speedV1-5", MemoryPatterns["MCDU-5"], +0x104, 4, "int"); //+0x40
-            AddMemoryValue("speedVR-5", MemoryPatterns["MCDU-5"], +0x114, 4, "int");
-            AddMemoryValue("speedV2-5", MemoryPatterns["MCDU-5"], +0x10C, 4, "int");
-            AddMemoryValue("speedV1-6", MemoryPatterns["MCDU-2"], -0x14AEC0, 4, "int"); //+0x40
-            AddMemoryValue("speedVR-6", MemoryPatterns["MCDU-2"], -0x14AEB0, 4, "int");
-            AddMemoryValue("speedV2-6", MemoryPatterns["MCDU-2"], -0x14AEB8, 4, "int");
+            //AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-1"], +0xAB30, 4, "int"); //+0xA5B8
+            //AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-1"], +0xAB40, 4, "int");
+            //AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-1"], +0xAB38, 4, "int");
+            //AddMemoryValue("speedV1-1", MemoryPatterns["MCDU-2"], +0x590, 4, "int"); //+0xA5B8
+            //AddMemoryValue("speedVR-1", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
+            //AddMemoryValue("speedV2-1", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
+            //AddMemoryValue("speedV1-2", MemoryPatterns["MCDU-2"], +0x590, 4, "int"); //+0x18
+            //AddMemoryValue("speedVR-2", MemoryPatterns["MCDU-2"], +0x5A0, 4, "int");
+            //AddMemoryValue("speedV2-2", MemoryPatterns["MCDU-2"], +0x598, 4, "int");
+            //AddMemoryValue("speedV1-3", MemoryPatterns["MCDU-3"], +0x590, 4, "int"); //+0x18
+            //AddMemoryValue("speedVR-3", MemoryPatterns["MCDU-3"], +0x5A0, 4, "int");
+            //AddMemoryValue("speedV2-3", MemoryPatterns["MCDU-3"], +0x598, 4, "int");
+            //AddMemoryValue("speedV1-4", MemoryPatterns["MCDU-4"], +0xAE8, 4, "int"); //+0x40
+            //AddMemoryValue("speedVR-4", MemoryPatterns["MCDU-4"], +0xAF8, 4, "int");
+            //AddMemoryValue("speedV2-4", MemoryPatterns["MCDU-4"], +0xAF0, 4, "int");
+            ////AddMemoryValue("speedV1-5", MemoryPatterns["MCDU-5"], +0x104, 4, "int"); //+0x40
+            ////AddMemoryValue("speedVR-5", MemoryPatterns["MCDU-5"], +0x114, 4, "int");
+            ////AddMemoryValue("speedV2-5", MemoryPatterns["MCDU-5"], +0x10C, 4, "int");
+            //AddMemoryValue("speedV1-5", MemoryPatterns["MCDU-5"], +0x104, 4, "int"); //+0x40
+            //AddMemoryValue("speedVR-5", MemoryPatterns["MCDU-5"], +0x114, 4, "int");
+            //AddMemoryValue("speedV2-5", MemoryPatterns["MCDU-5"], +0x10C, 4, "int");
+            //AddMemoryValue("speedV1-6", MemoryPatterns["MCDU-2"], -0x14AEC0, 4, "int"); //+0x40
+            //AddMemoryValue("speedVR-6", MemoryPatterns["MCDU-2"], -0x14AEB0, 4, "int");
+            //AddMemoryValue("speedV2-6", MemoryPatterns["MCDU-2"], -0x14AEB8, 4, "int");
+            //AddMemoryValue("speedV1-6", MemoryPatterns["MCDU-2"], -0x5B9F10, 4, "int"); //+0x40
+            //AddMemoryValue("speedVR-6", MemoryPatterns["MCDU-2"], -0x5B9F00, 4, "int");
+            //AddMemoryValue("speedV2-6", MemoryPatterns["MCDU-2"], -0x5B9F08, 4, "int");
+            //AddMemoryValue("speedV1-6", MemoryPatterns["MCDU-1"], +0x590, 4, "int"); //+0x40
+            //AddMemoryValue("speedVR-6", MemoryPatterns["MCDU-1"], +0x5A0, 4, "int");
+            //AddMemoryValue("speedV2-6", MemoryPatterns["MCDU-1"], +0x598, 4, "int");
+            AddMemoryValue("speedV1", MemoryPatterns["PERF"], +0xC, 4, "int"); //+0x40
+            AddMemoryValue("speedVR", MemoryPatterns["PERF"], +0x1C, 4, "int");
+            AddMemoryValue("speedV2", MemoryPatterns["PERF"], +0x14, 4, "int");
 
             //VAPP manual
-            AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0xAC50, 4, "int"); //6A0?
-            AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x6B0, 4, "int"); //6A0 -
-            AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x6B0, 4, "int"); //6A0?
-            AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xC08, 4, "int");
-            AddMemoryValue("speedVAPP-5", MemoryPatterns["MCDU-5"], +0x224, 4, "int");
-            AddMemoryValue("speedVAPP-6", MemoryPatterns["MCDU-2"], -0x14ADA0, 4, "int");
+            //AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-1"], +0xAC50, 4, "int"); //6A0?
+            //AddMemoryValue("speedVAPP-1", MemoryPatterns["MCDU-2"], +0x6B0, 4, "int"); //6A0?
+            //AddMemoryValue("speedVAPP-2", MemoryPatterns["MCDU-2"], +0x6B0, 4, "int"); //6A0 -
+            //AddMemoryValue("speedVAPP-3", MemoryPatterns["MCDU-3"], +0x6B0, 4, "int"); //6A0?
+            //AddMemoryValue("speedVAPP-4", MemoryPatterns["MCDU-4"], +0xC08, 4, "int");
+            //AddMemoryValue("speedVAPP-5", MemoryPatterns["MCDU-5"], +0x224, 4, "int");
+            //AddMemoryValue("speedVAPP-6", MemoryPatterns["MCDU-2"], -0x14ADA0, 4, "int");
+            //AddMemoryValue("speedVAPP-6", MemoryPatterns["MCDU-2"], -0x5B9DF0, 4, "int");
+            //AddMemoryValue("speedVAPP-6", MemoryPatterns["MCDU-1"], +0x6B0, 4, "int");
+            AddMemoryValue("speedVAPP", MemoryPatterns["PERF"], +0x12C, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
@@ -193,7 +223,13 @@ namespace FenixQuartz
             IPCManager.SimConnect.SubscribeLvar("I_FCU_ALTITUDE_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE_SCALE");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_MODE");
-            IPCManager.SimConnect.SubscribeLvar("I_CDU1_FM");            
+            IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_STD");
+            IPCManager.SimConnect.SubscribeSimVar("KOHLSMAN SETTING MB:1", "Millibars");
+            IPCManager.SimConnect.SubscribeLvar("I_CDU1_FM");
+            if (App.perfCaptainSide)
+                IPCManager.SimConnect.SubscribeLvar("S_CDU1_KEY_PERF");
+            else
+                IPCManager.SimConnect.SubscribeLvar("S_CDU2_KEY_PERF");
             string com = "1";
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
@@ -282,22 +318,65 @@ namespace FenixQuartz
             }
         }
 
-        private void CheckMCDU()
+        //private void CheckMCDU()
+        //{
+        //    if (firstUpdate && fcuIsPowered)
+        //    {
+        //        Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"FCU already powered, skip Rescans.");
+        //        perfWasSet = true;
+        //    }
+
+        //    if (!firstUpdate && !perfWasSet && isSpdManaged && isHdgManaged)
+        //    {
+        //        Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD & HDG are managed)! Rescanning ...");
+        //        System.Threading.Thread.Sleep(500);
+        //        Rescan();
+        //        perfWasSet = true;
+        //    }
+
+        //}
+
+        private void CheckPerfButton()
         {
-            if (firstUpdate && fcuIsPowered)
+            int perfButton = GetPerfButton();
+
+            if (firstUpdate)
             {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"FCU already powered, skip Rescans.");
-                perfWasSet = true;
+                lastPerfButton = perfButton;
+                msSincePerfChange = 0;
+                return;
             }
 
-            if (!firstUpdate && !perfWasSet && isSpdManaged && isHdgManaged)
+            if (msSincePerfChange == 0 && lastPerfButton != perfButton)
             {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckMCDU", $"PERF was set (SPD & HDG are managed)! Rescanning ...");
-                System.Threading.Thread.Sleep(500);
-                Rescan();
-                perfWasSet = true;
+                if (lastPerfButton < perfButton && lastPerfButton + 2 != perfButton)
+                {
+                    Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"Timer for PERF-Button started");
+                    msSincePerfChange = App.updateIntervall;
+                }
+                lastPerfButton = perfButton;
             }
-
+            else if (msSincePerfChange != 0 && lastPerfButton == perfButton)
+            {
+                msSincePerfChange += App.updateIntervall;
+                if (msSincePerfChange >= App.perfButtonHold)
+                {
+                    msSincePerfChange = 0;
+                    Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"PERF-Button was hold for over {App.perfButtonHold}ms - Rescannning ...");
+                    WriteMcduDash(1);
+                    System.Threading.Thread.Sleep(500);
+                    Rescan();
+                    WriteMcduDash(0);
+                    perfWasScanned = true;
+                    lastPerfButton = GetPerfButton();
+                }
+            }
+            else if (msSincePerfChange != 0 && lastPerfButton != perfButton)
+            {
+                Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"Timer for PERF-Button stopped");
+                msSincePerfChange = 0;
+                lastPerfButton = perfButton;
+            }
         }
 
         private void Rescan()
@@ -305,6 +384,7 @@ namespace FenixQuartz
             foreach (var pattern in MemoryPatterns.Values)
                 pattern.Location = 0;
             InitializeScanner();
+            PrintReport();
             Scanner.UpdateBuffers(MemoryValues);
         }
 
@@ -318,7 +398,8 @@ namespace FenixQuartz
                     return false;
                 }
                 CheckFCU();
-                CheckMCDU();
+                //CheckMCDU();
+                CheckPerfButton();
 
                 isLightTest = IPCManager.SimConnect.ReadLvar("S_OH_IN_LT_ANN_LT") == 2;
                 UpdateFMA();
@@ -332,6 +413,7 @@ namespace FenixQuartz
                 UpdateRudder();
                 UpdateClock();
                 UpdateSpeeds();
+                UpdateBaro();
 
                 if (!App.useLvars)
                     FSUIPCConnection.Process(App.groupName);
@@ -388,13 +470,14 @@ namespace FenixQuartz
                 Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting hasLanded to FALSE");
             }
 
-            if (hasLanded && !isSpdManaged && !isHdgManaged && perfWasSet)
+            if (hasLanded && !isSpdManaged && !isHdgManaged/* && perfWasSet*/)
             {
-                perfWasSet = false;
+                //perfWasSet = false;
                 speedV1 = 0;
                 speedVR = 0;
                 speedV2 = 0;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting perfWasSet to FALSE");
+                //Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting perfWasSet to FALSE");
+                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Resetting V-Speeds to 0");
             }
 
             float switchAlt = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE");
@@ -823,7 +906,7 @@ namespace FenixQuartz
                 result = "";
             else if (input != -1 && digits != 4)
                 result = input.ToString($"D{digits}");
-            else if (disp >= 0 && disp <= 7777)
+            else if (disp > 0 && disp <= 7777)
                 result = disp.ToString($"D{digits}");
             else
                 result = "";
@@ -832,7 +915,7 @@ namespace FenixQuartz
                 IPCValues["xpdrStr"].SetValue(result);
             else
             {
-                IPCValues["xpdrDigits"].SetValue(digits);
+                IPCValues["xpdrDigits"].SetValue((short)digits);
                 if (result == "")
                     IPCValues["xpdr"].SetValue((short)-1);
                 else if (short.TryParse(result, out short shortValue))
@@ -891,6 +974,9 @@ namespace FenixQuartz
         private void UpdateBatteries()
         {
             double value = MemoryValues["bat1Display"].GetValue() ?? 0.0;
+            if (value <= 0 || value >= 42)
+                value = MemoryValues["bat1Display21"].GetValue() ?? 0.0;
+
             if (!App.rawValues)
                 IPCValues["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
             else
@@ -1048,79 +1134,99 @@ namespace FenixQuartz
 
         private void UpdateSpeeds()
         {
-            int v1 = MemoryValues["speedV1-1"].GetValue() ?? 0;
-            int vr = MemoryValues["speedVR-1"].GetValue() ?? 0;
-            int v2 = MemoryValues["speedV2-1"].GetValue() ?? 0;
-            int vapp = MemoryValues["speedVAPP-1"].GetValue() ?? -1;
+            //int v1 = MemoryValues["speedV1-1"].GetValue() ?? 0;
+            //int vr = MemoryValues["speedVR-1"].GetValue() ?? 0;
+            //int v2 = MemoryValues["speedV2-1"].GetValue() ?? 0;
+            //int vapp = MemoryValues["speedVAPP-1"].GetValue() ?? -1;
 
-            if (!SpeedsAreValid(v1, v2, vr))
-            {
-                v1 = MemoryValues["speedV1-2"].GetValue() ?? 0;
-                vr = MemoryValues["speedVR-2"].GetValue() ?? 0;
-                v2 = MemoryValues["speedV2-2"].GetValue() ?? 0;
-                vapp = MemoryValues["speedVAPP-2"].GetValue() ?? -1;
-            }
-            else
-            {
-                speedV1 = v1;
-                speedVR = vr;
-                speedV2 = v2;
-            }
+            int v1 = MemoryValues["speedV1"].GetValue() ?? 0;
+            int vr = MemoryValues["speedVR"].GetValue() ?? 0;
+            int v2 = MemoryValues["speedV2"].GetValue() ?? 0;
+            int vapp = MemoryValues["speedVAPP"].GetValue() ?? -1;
 
-            if (!SpeedsAreValid(v1, v2, vr))
-            {
-                v1 = MemoryValues["speedV1-3"].GetValue() ?? 0;
-                vr = MemoryValues["speedVR-3"].GetValue() ?? 0;
-                v2 = MemoryValues["speedV2-3"].GetValue() ?? 0;
-                vapp = MemoryValues["speedVAPP-3"].GetValue() ?? -1;
-            }
-            else
-            {
-                speedV1 = v1;
-                speedVR = vr;
-                speedV2 = v2;
-            }
+            //if (!SpeedsAreValid(v1, v2, vr))
+            //{
+            //    v1 = MemoryValues["speedV1-2"].GetValue() ?? 0;
+            //    vr = MemoryValues["speedVR-2"].GetValue() ?? 0;
+            //    v2 = MemoryValues["speedV2-2"].GetValue() ?? 0;
+            //    vapp = MemoryValues["speedVAPP-2"].GetValue() ?? -1;
+            //}
+            //else
+            //{
+            //    speedV1 = v1;
+            //    speedVR = vr;
+            //    speedV2 = v2;
+            //}
 
-            if (!SpeedsAreValid(v1, v2, vr))
-            {
-                v1 = MemoryValues["speedV1-4"].GetValue() ?? 0;
-                vr = MemoryValues["speedVR-4"].GetValue() ?? 0;
-                v2 = MemoryValues["speedV2-4"].GetValue() ?? 0;
-                vapp = MemoryValues["speedVAPP-4"].GetValue() ?? -1;
-            }
-            else
-            {
-                speedV1 = v1;
-                speedVR = vr;
-                speedV2 = v2;
-            }
+            //if (!SpeedsAreValid(v1, v2, vr))
+            //{
+            //    v1 = MemoryValues["speedV1-3"].GetValue() ?? 0;
+            //    vr = MemoryValues["speedVR-3"].GetValue() ?? 0;
+            //    v2 = MemoryValues["speedV2-3"].GetValue() ?? 0;
+            //    vapp = MemoryValues["speedVAPP-3"].GetValue() ?? -1;
+            //}
+            //else
+            //{
+            //    speedV1 = v1;
+            //    speedVR = vr;
+            //    speedV2 = v2;
+            //}
 
-            if (!SpeedsAreValid(v1, v2, vr))
-            {
-                v1 = MemoryValues["speedV1-5"].GetValue() ?? 0;
-                vr = MemoryValues["speedVR-5"].GetValue() ?? 0;
-                v2 = MemoryValues["speedV2-5"].GetValue() ?? 0;
-                vapp = MemoryValues["speedVAPP-5"].GetValue() ?? -1;
-            }
-            else
-            {
-                speedV1 = v1;
-                speedVR = vr;
-                speedV2 = v2;
-            }
+            //if (!SpeedsAreValid(v1, v2, vr))
+            //{
+            //    v1 = MemoryValues["speedV1-4"].GetValue() ?? 0;
+            //    vr = MemoryValues["speedVR-4"].GetValue() ?? 0;
+            //    v2 = MemoryValues["speedV2-4"].GetValue() ?? 0;
+            //    vapp = MemoryValues["speedVAPP-4"].GetValue() ?? -1;
+            //}
+            //else
+            //{
+            //    speedV1 = v1;
+            //    speedVR = vr;
+            //    speedV2 = v2;
+            //}
 
-            if (!SpeedsAreValid(v1, v2, vr))
+            //if (!SpeedsAreValid(v1, v2, vr))
+            //{
+            //    v1 = MemoryValues["speedV1-5"].GetValue() ?? 0;
+            //    vr = MemoryValues["speedVR-5"].GetValue() ?? 0;
+            //    v2 = MemoryValues["speedV2-5"].GetValue() ?? 0;
+            //    vapp = MemoryValues["speedVAPP-5"].GetValue() ?? -1;
+            //}
+            //else
+            //{
+            //    speedV1 = v1;
+            //    speedVR = vr;
+            //    speedV2 = v2;
+            //}
+
+            //if (!SpeedsAreValid(v1, v2, vr))
+            //{
+            //    v1 = MemoryValues["speedV1-6"].GetValue() ?? 0;
+            //    vr = MemoryValues["speedVR-6"].GetValue() ?? 0;
+            //    v2 = MemoryValues["speedV2-6"].GetValue() ?? 0;
+            //    vapp = MemoryValues["speedVAPP-6"].GetValue() ?? -1;
+            //}
+            //else
+            //{
+            //    speedV1 = v1;
+            //    speedVR = vr;
+            //    speedV2 = v2;
+            //}
+
+            if (SpeedsAreValid(v1, v2, vr) && perfWasScanned)
             {
-                v1 = MemoryValues["speedV1-6"].GetValue() ?? 0;
-                vr = MemoryValues["speedVR-6"].GetValue() ?? 0;
-                v2 = MemoryValues["speedV2-6"].GetValue() ?? 0;
-                vapp = MemoryValues["speedVAPP-6"].GetValue() ?? -1;
-            }
-            else
-            {
-                speedV1 = v1;
-                speedVR = vr;
-                speedV2 = v2;
+                if (perfReadTicks == 0)
+                    WriteMcduReady(1);
+
+                perfReadTicks++;
+                
+                if (perfReadTicks > 10)
+                {
+                    perfWasScanned = false;
+                    perfReadTicks = 0;
+                    WriteMcduReady(0);
+                }
             }
 
             if (!SpeedsAreValid(v1, v2, vr) && SpeedsAreValid(speedV1, speedV2, speedVR))
@@ -1135,6 +1241,98 @@ namespace FenixQuartz
             IPCValues["speedVR"].SetValue(vr);
             IPCValues["speedV2"].SetValue(v2);
             IPCValues["speedVAPP"].SetValue(vapp);
+        }
+
+        public int GetPerfButton()
+        {
+            if (App.perfCaptainSide)
+                return (int)IPCManager.SimConnect.ReadLvar("S_CDU1_KEY_PERF");
+            else
+                return (int)IPCManager.SimConnect.ReadLvar("S_CDU2_KEY_PERF");
+        }
+
+        public void WriteMcduDash(int value)
+        {
+            if (App.perfCaptainSide)
+                IPCManager.SimConnect.WriteLvar("I_CDU1_DASH", value);
+            else
+                IPCManager.SimConnect.WriteLvar("I_CDU2_DASH", value);
+        }
+
+        public void WriteMcduReady(int value)
+        {
+            if (App.perfCaptainSide)
+                IPCManager.SimConnect.WriteLvar("I_CDU1_RDY", value);
+            else
+                IPCManager.SimConnect.WriteLvar("I_CDU2_RDY", value);
+        }
+
+        public void UpdateBaro()
+        {
+            if (firstUpdate)
+            {
+                lastSwitchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
+                return;
+            }
+
+            float switchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
+            if (switchBaroStd != lastSwitchBaroStd)
+            {
+                if (switchBaroStd > lastSwitchBaroStd)
+                    isBaroStd = true;
+                else
+                    isBaroStd = false;
+                Logger.Log(LogLevel.Information, "ElementManager:UpdateBaro", $"Baro-Std changed: isBaroStd {isBaroStd}");
+                lastSwitchBaroStd = switchBaroStd;
+            }
+
+            float pressure = IPCManager.SimConnect.ReadSimVar("KOHLSMAN SETTING MB:1", "Millibars");
+            bool isHpa = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_MODE") == 1;
+
+            if (!isHpa)
+                pressure = (float)Math.Round(pressure * 0.029529983071445f, 2);
+            else
+                pressure = (float)Math.Round(pressure, 0);
+            
+            if (isLightTest)
+                pressure = 88.88f;
+
+            if (!App.rawValues)
+            {
+                string result;
+                if (!fcuIsPowered)
+                    result = "";
+                else if (isBaroStd)
+                    result = "Std";
+                else if (isLightTest)
+                    result = "88.88";
+                else
+                {
+                    if (isHpa)
+                        result = string.Format("{0,4:0000}", pressure);
+                    else
+                        result = string.Format(CultureInfo.InvariantCulture.NumberFormat, "{0:F2}", pressure);
+                }
+
+                IPCValues["baroCptStr"].SetValue(result);
+            }
+            else
+            {
+                if (!fcuIsPowered)
+                    IPCValues["baroCpt"].SetValue((float)-1);
+                else
+                    IPCValues["baroCpt"].SetValue((float)pressure);
+
+                if (isBaroStd)
+                    IPCValues["baroCptStd"].SetValue((byte)1);
+                else
+                    IPCValues["baroCptStd"].SetValue((byte)0);
+
+                if (isHpa)
+                    IPCValues["baroCptMb"].SetValue((byte)1);
+                else
+                    IPCValues["baroCptMb"].SetValue((byte)0);
+            }
         }
 
         public void PrintReport()

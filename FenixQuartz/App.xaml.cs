@@ -26,6 +26,8 @@ namespace FenixQuartz
         public static readonly bool ooMode = Convert.ToBoolean(ConfigurationManager.AppSettings["ooMode"]);
         public static readonly string lvarPrefix = Convert.ToString(ConfigurationManager.AppSettings["lvarPrefix"]);
         public static readonly bool ignoreBatteries = Convert.ToBoolean(ConfigurationManager.AppSettings["ignoreBatteries"]);
+        public static readonly bool perfCaptainSide = Convert.ToBoolean(ConfigurationManager.AppSettings["perfCaptainSide"]);
+        public static readonly int perfButtonHold = Convert.ToInt32(ConfigurationManager.AppSettings["perfButtonHold"]);
         public static readonly string groupName = "FenixQuartz";
 
         public static bool CancellationRequested { get; set; } = false;

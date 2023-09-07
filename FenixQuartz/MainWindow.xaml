@@ -127,6 +127,10 @@
                 <Label Name="bat1Display"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Label>bat1Display21</Label>
+                <Label Name="bat1Display21"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <Label>bat2Display1</Label>
                 <Label Name="bat2Display1"></Label>
             </StackPanel>
@@ -162,7 +166,7 @@
                 <Label>clockET</Label>
                 <Label Name="clockET"></Label>
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
+            <!--<StackPanel Orientation="Horizontal">
                 <Label>speedV1-(1-6)</Label>
                 <Label Name="speedV1_1"></Label>
                 <Label Name="speedV1_2"></Label>
@@ -197,6 +201,22 @@
                 <Label Name="speedVAPP_4"></Label>
                 <Label Name="speedVAPP_5"></Label>
                 <Label Name="speedVAPP_6"></Label>
+            </StackPanel>-->
+            <StackPanel Orientation="Horizontal">
+                <Label>speedV1</Label>
+                <Label Name="speedV1"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedVR</Label>
+                <Label Name="speedVR"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedV2</Label>
+                <Label Name="speedV2"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label>speedVAPP</Label>
+                <Label Name="speedVAPP"></Label>
             </StackPanel>
         </StackPanel>
     </Grid>
