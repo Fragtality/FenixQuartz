@@ -365,7 +365,10 @@ namespace FenixQuartz
                     Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"PERF-Button was hold for over {App.perfButtonHold}ms - Rescannning ...");
                     WriteMcduDash(1);
                     System.Threading.Thread.Sleep(500);
+                    TypeSequence();
                     Rescan();
+                    McduKey("CLEAR");
+                    McduKey("LSK2R");
                     WriteMcduDash(0);
                     perfWasScanned = true;
                     lastPerfButton = GetPerfButton();
@@ -1249,6 +1252,34 @@ namespace FenixQuartz
                 return (int)IPCManager.SimConnect.ReadLvar("S_CDU1_KEY_PERF");
             else
                 return (int)IPCManager.SimConnect.ReadLvar("S_CDU2_KEY_PERF");
+        }
+
+        public void PushButton(string lvar)
+        {
+            IPCManager.SimConnect.WriteLvar(lvar, 1);
+            System.Threading.Thread.Sleep(150);
+            IPCManager.SimConnect.WriteLvar(lvar, 0);
+        }
+
+        public void McduKey(string num)
+        {
+            string cdu = "CDU1";
+            if (!App.perfCaptainSide)
+                cdu = "CDU2";
+            PushButton($"S_{cdu}_KEY_{num}");
+        }
+
+        public void TypeSequence()
+        {
+            System.Threading.Thread.Sleep(150);
+            McduKey("PERF");
+            McduKey("1");
+            McduKey("2");
+            McduKey("3");
+            McduKey("4");
+            McduKey("5");
+            McduKey("LSK2R");
+            System.Threading.Thread.Sleep(150);
         }
 
         public void WriteMcduDash(int value)
