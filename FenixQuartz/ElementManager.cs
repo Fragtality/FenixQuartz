@@ -1226,6 +1226,9 @@ namespace FenixQuartz
                 
                 if (perfReadTicks > 10)
                 {
+                    speedV1 = v1;
+                    speedVR = vr;
+                    speedV2 = v2;
                     perfWasScanned = false;
                     perfReadTicks = 0;
                     WriteMcduReady(0);
