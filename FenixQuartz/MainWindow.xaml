@@ -166,42 +166,6 @@
                 <Label>clockET</Label>
                 <Label Name="clockET"></Label>
             </StackPanel>
-            <!--<StackPanel Orientation="Horizontal">
-                <Label>speedV1-(1-6)</Label>
-                <Label Name="speedV1_1"></Label>
-                <Label Name="speedV1_2"></Label>
-                <Label Name="speedV1_3"></Label>
-                <Label Name="speedV1_4"></Label>
-                <Label Name="speedV1_5"></Label>
-                <Label Name="speedV1_6"></Label>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>speedVR-(1-6)</Label>
-                <Label Name="speedVR_1"></Label>
-                <Label Name="speedVR_2"></Label>
-                <Label Name="speedVR_3"></Label>
-                <Label Name="speedVR_4"></Label>
-                <Label Name="speedVR_5"></Label>
-                <Label Name="speedVR_6"></Label>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>speedV2-(1-6)</Label>
-                <Label Name="speedV2_1"></Label>
-                <Label Name="speedV2_2"></Label>
-                <Label Name="speedV2_3"></Label>
-                <Label Name="speedV2_4"></Label>
-                <Label Name="speedV2_5"></Label>
-                <Label Name="speedV2_6"></Label>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <Label>speedVAPP-(1-6)</Label>
-                <Label Name="speedVAPP_1"></Label>
-                <Label Name="speedVAPP_2"></Label>
-                <Label Name="speedVAPP_3"></Label>
-                <Label Name="speedVAPP_4"></Label>
-                <Label Name="speedVAPP_5"></Label>
-                <Label Name="speedVAPP_6"></Label>
-            </StackPanel>-->
             <StackPanel Orientation="Horizontal">
                 <Label>speedV1</Label>
                 <Label Name="speedV1"></Label>

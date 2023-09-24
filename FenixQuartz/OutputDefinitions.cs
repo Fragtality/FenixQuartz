@@ -20,7 +20,6 @@ namespace FenixQuartz
         public override string ToString()
         {
             if (!App.rawValues)
-                //return string.Format("Using FSUIPC Offset: {0,-16}     0x{1:X}:{2}:s", $"'{ID}'", Offset, Size);
                 return string.Format("Using FSUIPC Offset: {0,-16}     0x{1:X} Type: {2,-8}  Size: {3}", $"'{ID}'", Offset, Type, Size);
             else if (!App.useLvars)
                 return string.Format("Using FSUIPC Offset: {0,-16}     0x{1:X} Type: {2,-8}  Size: {3}", $"'{ID}'", Offset, Type, Size);

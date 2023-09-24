@@ -78,31 +78,6 @@ namespace FenixQuartz
                 clockCHR.Content = values["clockCHR"].GetValue() ?? 0;
                 clockET.Content = values["clockET"].GetValue() ?? 0;
 
-                //speedV1_1.Content = values["speedV1-1"].GetValue() ?? 0;
-                //speedVR_1.Content = values["speedVR-1"].GetValue() ?? 0;
-                //speedV2_1.Content = values["speedV2-1"].GetValue() ?? 0;
-                //speedV1_2.Content = values["speedV1-2"].GetValue() ?? 0;
-                //speedVR_2.Content = values["speedVR-2"].GetValue() ?? 0;
-                //speedV2_2.Content = values["speedV2-2"].GetValue() ?? 0;
-                //speedV1_3.Content = values["speedV1-3"].GetValue() ?? 0;
-                //speedVR_3.Content = values["speedVR-3"].GetValue() ?? 0;
-                //speedV2_3.Content = values["speedV2-3"].GetValue() ?? 0;
-                //speedV1_4.Content = values["speedV1-4"].GetValue() ?? 0;
-                //speedVR_4.Content = values["speedVR-4"].GetValue() ?? 0;
-                //speedV2_4.Content = values["speedV2-4"].GetValue() ?? 0;
-                //speedV1_5.Content = values["speedV1-5"].GetValue() ?? 0;
-                //speedVR_5.Content = values["speedVR-5"].GetValue() ?? 0;
-                //speedV2_5.Content = values["speedV2-5"].GetValue() ?? 0;
-                //speedV1_6.Content = values["speedV1-6"].GetValue() ?? 0;
-                //speedVR_6.Content = values["speedVR-6"].GetValue() ?? 0;
-                //speedV2_6.Content = values["speedV2-6"].GetValue() ?? 0;
-
-                //speedVAPP_1.Content = values["speedVAPP-1"].GetValue() ?? 0;
-                //speedVAPP_2.Content = values["speedVAPP-2"].GetValue() ?? 0;
-                //speedVAPP_3.Content = values["speedVAPP-3"].GetValue() ?? 0;
-                //speedVAPP_4.Content = values["speedVAPP-4"].GetValue() ?? 0;
-                //speedVAPP_5.Content = values["speedVAPP-5"].GetValue() ?? 0;
-                //speedVAPP_5.Content = values["speedVAPP-6"].GetValue() ?? 0;
                 speedV1.Content = values["speedV1"].GetValue() ?? 0;
                 speedVR.Content = values["speedVR"].GetValue() ?? 0;
                 speedV2.Content = values["speedV2"].GetValue() ?? 0;
