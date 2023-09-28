@@ -63,7 +63,8 @@ namespace FenixQuartz
                 { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
                 { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
                 //{ "PERF", new MemoryPattern("00 00 00 00 00 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 39 30 00 00") },
-                { "PERF", new MemoryPattern("00 00 00 00 00 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? 01 00 00 00 39 30 00 00 00 00 00 00 00 00 00 00") },
+                //{ "PERF", new MemoryPattern("00 00 00 00 00 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? ?? 00 00 ?? 00 00 00 ?? 00 00 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? ?? ?? 01 00 00 00 39 30 00 00 00 00 00 00 00 00 00 00") },
+                { "PERF", new MemoryPattern("40 A1 ?? ?? ?? 7F 00 00 00 00 00 00 00 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00") },
             };
 
             InitializeScanner();
@@ -127,12 +128,12 @@ namespace FenixQuartz
             AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
 
             //TO Speeds
-            AddMemoryValue("speedV1", MemoryPatterns["PERF"], +0xC, 4, "int");
-            AddMemoryValue("speedVR", MemoryPatterns["PERF"], +0x1C, 4, "int");
-            AddMemoryValue("speedV2", MemoryPatterns["PERF"], +0x14, 4, "int");
+            AddMemoryValue("speedV1", MemoryPatterns["PERF"], +0x14, 4, "int");
+            AddMemoryValue("speedVR", MemoryPatterns["PERF"], +0x24, 4, "int");
+            AddMemoryValue("speedV2", MemoryPatterns["PERF"], +0x1C, 4, "int");
 
             //VAPP manual
-            AddMemoryValue("speedVAPP", MemoryPatterns["PERF"], +0x12C, 4, "int");
+            AddMemoryValue("speedVAPP", MemoryPatterns["PERF"], +0x134, 4, "int");
 
 
             //// STRING VALUES - StreamDeck
@@ -297,10 +298,10 @@ namespace FenixQuartz
                     Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"PERF-Button was hold for over {App.perfButtonHold}ms - Rescannning ...");
                     WriteMcduDash(1);
                     System.Threading.Thread.Sleep(500);
-                    TypeSequence();
+                    //TypeSequence();
                     Rescan();
-                    McduKey("CLEAR");
-                    McduKey("LSK2R");
+                    //McduKey("CLEAR");
+                    //McduKey("LSK2R");
                     WriteMcduDash(0);
                     perfWasScanned = true;
                     lastPerfButton = GetPerfButton();
@@ -1076,26 +1077,26 @@ namespace FenixQuartz
             IPCManager.SimConnect.WriteLvar(lvar, 0);
         }
 
-        public static void McduKey(string num)
-        {
-            string cdu = "CDU1";
-            if (!App.perfCaptainSide)
-                cdu = "CDU2";
-            PushButton($"S_{cdu}_KEY_{num}");
-        }
+        //public static void McduKey(string num)
+        //{
+        //    string cdu = "CDU1";
+        //    if (!App.perfCaptainSide)
+        //        cdu = "CDU2";
+        //    PushButton($"S_{cdu}_KEY_{num}");
+        //}
 
-        public static void TypeSequence()
-        {
-            System.Threading.Thread.Sleep(150);
-            McduKey("PERF");
-            McduKey("1");
-            McduKey("2");
-            McduKey("3");
-            McduKey("4");
-            McduKey("5");
-            McduKey("LSK2R");
-            System.Threading.Thread.Sleep(150);
-        }
+        //public static void TypeSequence()
+        //{
+        //    System.Threading.Thread.Sleep(150);
+        //    McduKey("PERF");
+        //    McduKey("1");
+        //    McduKey("2");
+        //    McduKey("3");
+        //    McduKey("4");
+        //    McduKey("5");
+        //    McduKey("LSK2R");
+        //    System.Threading.Thread.Sleep(150);
+        //}
 
         public static void WriteMcduDash(int value)
         {
