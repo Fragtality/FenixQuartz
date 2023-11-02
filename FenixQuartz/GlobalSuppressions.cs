@@ -16,3 +16,5 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.RestartScanner")]
 [assembly: SuppressMessage("Performance", "CA1822:Member als statisch markieren", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.ExitApplication")]
 [assembly: SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.NotifyIconViewModel.ShowWindow")]
+[assembly: SuppressMessage("Style", "IDE0251:Member als \"readonly\" festlegen", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.ClientDataString.Set(System.Byte[])")]
+[assembly: SuppressMessage("Style", "IDE0059:Unnötige Zuweisung eines Werts.", Justification = "<Ausstehend>", Scope = "member", Target = "~M:FenixQuartz.MobiSimConnect.SendWasmCmd(System.Enum,System.Enum,System.String)")]
