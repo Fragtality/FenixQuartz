@@ -5,6 +5,8 @@ VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FenixQuartz", "FenixQuartz\FenixQuartz.csproj", "{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer", "Installer\Installer.csproj", "{BF3DD08A-7547-4352-B1DD-9A343D757421}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C52FCDC-2E51-4615-A2A2-49AFA487A7EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF3DD08A-7547-4352-B1DD-9A343D757421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF3DD08A-7547-4352-B1DD-9A343D757421}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF3DD08A-7547-4352-B1DD-9A343D757421}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF3DD08A-7547-4352-B1DD-9A343D757421}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

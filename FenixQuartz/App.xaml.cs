@@ -1,8 +1,8 @@
 ﻿using H.NotifyIcon;
 using Serilog;
 using System;
-using System.Configuration;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,23 +12,28 @@ namespace FenixQuartz
 {
     public partial class App : Application
     {
-        public static readonly bool devGUI = Convert.ToBoolean(ConfigurationManager.AppSettings["debugGUI"]);
-        public static readonly string FenixExecutable = Convert.ToString(ConfigurationManager.AppSettings["FenixExecutable"]) ?? "FenixSystem";
-        public static readonly string logFilePath = Convert.ToString(ConfigurationManager.AppSettings["logFilePath"]) ?? "FenixQuartz.log";
-        public static readonly string logLevel = Convert.ToString(ConfigurationManager.AppSettings["logLevel"]) ?? "Debug";
-        public static readonly bool waitForConnect = Convert.ToBoolean(ConfigurationManager.AppSettings["waitForConnect"]);
-        public static readonly int offsetBase = Convert.ToInt32(ConfigurationManager.AppSettings["offsetBase"], 16);
-        public static readonly bool rawValues = Convert.ToBoolean(ConfigurationManager.AppSettings["rawValues"]);
-        public static readonly bool useLvars = Convert.ToBoolean(ConfigurationManager.AppSettings["useLvars"]);
-        public static readonly int updateIntervall = Convert.ToInt32(ConfigurationManager.AppSettings["updateIntervall"]);
-        public static readonly string altScaleDelim = Convert.ToString(ConfigurationManager.AppSettings["altScaleDelim"]) ?? " ";
-        public static readonly bool addFcuMode = Convert.ToBoolean(ConfigurationManager.AppSettings["addFcuMode"]);
-        public static readonly bool ooMode = Convert.ToBoolean(ConfigurationManager.AppSettings["ooMode"]);
-        public static readonly string lvarPrefix = Convert.ToString(ConfigurationManager.AppSettings["lvarPrefix"]);
-        public static readonly bool ignoreBatteries = Convert.ToBoolean(ConfigurationManager.AppSettings["ignoreBatteries"]);
-        public static readonly bool perfCaptainSide = Convert.ToBoolean(ConfigurationManager.AppSettings["perfCaptainSide"]);
-        public static readonly int perfButtonHold = Convert.ToInt32(ConfigurationManager.AppSettings["perfButtonHold"]);
-        public static readonly string groupName = "FenixQuartz";
+        public static bool devGUI;
+        public static string FenixExecutable;
+        public static string logFilePath;
+        public static string logLevel;
+        public static bool waitForConnect;
+        public static int offsetBase;
+        public static bool rawValues;
+        public static bool useLvars;
+        public static int updateIntervall;
+        public static string altScaleDelim;
+        public static bool addFcuMode;
+        public static bool ooMode;
+        public static string lvarPrefix;
+        public static bool ignoreBatteries;
+        public static bool perfCaptainSide;
+        public static int perfButtonHold;
+        public static string groupName = "FenixQuartz";
+
+        public static new App Current => Application.Current as App;
+        public static string ConfigFilePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\FenixQuartz\FenixQuartz.config";
+        public static string AppDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\FenixQuartz\bin";
+        public static ConfigurationFile ConfigurationFile = new();
 
         public static bool CancellationRequested { get; set; } = false;
         public static bool RestartRequested { get; set; } = false;
@@ -36,11 +41,46 @@ namespace FenixQuartz
 
         private TaskbarIcon notifyIcon;
         public static QuartzService Service;
+
+        protected static void LoadConfiguration()
+        {
+            ConfigurationFile.LoadConfiguration();
+            devGUI = Convert.ToBoolean(ConfigurationFile.GetSetting("debugGUI", "true"));
+            FenixExecutable = Convert.ToString(ConfigurationFile.GetSetting("FenixExecutable", "FenixSystem"));
+            logFilePath = @"..\log\" + Convert.ToString(ConfigurationFile.GetSetting("logFilePath", "FenixQuartz.log"));
+            logLevel = Convert.ToString(ConfigurationFile.GetSetting("logLevel", "Debug"));
+            waitForConnect = Convert.ToBoolean(ConfigurationFile.GetSetting("waitForConnect", "true"));
+            offsetBase = Convert.ToInt32(ConfigurationFile.GetSetting("offsetBase", "0x5408"), 16);
+            rawValues = Convert.ToBoolean(ConfigurationFile.GetSetting("rawValues", "false"));
+            useLvars = Convert.ToBoolean(ConfigurationFile.GetSetting("useLvars", "false"));
+            updateIntervall = Convert.ToInt32(ConfigurationFile.GetSetting("updateIntervall", "100"));
+            altScaleDelim = Convert.ToString(ConfigurationFile.GetSetting("altScaleDelim", " "));
+            addFcuMode = Convert.ToBoolean(ConfigurationFile.GetSetting("addFcuMode", "true"));
+            ooMode = Convert.ToBoolean(ConfigurationFile.GetSetting("ooMode", "false"));
+            lvarPrefix = Convert.ToString(ConfigurationFile.GetSetting("lvarPrefix", "FNX2PLD_"));
+            ignoreBatteries = Convert.ToBoolean(ConfigurationFile.GetSetting("ignoreBatteries", "false"));
+            perfCaptainSide = Convert.ToBoolean(ConfigurationFile.GetSetting("perfCaptainSide", "true"));
+            perfButtonHold = Convert.ToInt32(ConfigurationFile.GetSetting("perfButtonHold", "1000"));
+        }
         
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
+            Directory.SetCurrentDirectory(AppDir);
+
+            if (!File.Exists(ConfigFilePath))
+            {
+                ConfigFilePath = Directory.GetCurrentDirectory() + @"\FenixQuartz.config";
+                if (!File.Exists(ConfigFilePath))
+                {
+                    MessageBox.Show("No Configuration File found! Closing ...", "Critical Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Application.Current.Shutdown();
+                    return;
+                }
+            }
+
+            LoadConfiguration();
             InitLog();
             InitSystray();
 
