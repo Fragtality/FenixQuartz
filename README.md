@@ -30,7 +30,7 @@ Following Display-Values are available:
 <br/><br/><br/>
 
 # Installation / Update
-Basically: Just run the Installer - it will extract it for you to a fixed Location and will also install/update the neccessary Software to your PC/Sim. It even setups Auto-Start and creates a Link on the Desktop, if you want.<br/>
+Basically: Just run the Installer - it will extract it for you to a fixed Location and will also install/update the neccessary Software to your PC/Sim. It even setups Auto-Start and creates a Link on the Desktop, if you want.<br/><br/>
 You can choose directly in the Installer to extract a preconfigured Configuration File for each of these Modes during Installation/Update. First-Time Installations will default to String/Offset Mode if "Do not change" is selected. Choosing any other Option for Updating/Reinstalling will overwrite the *whole* existing Configuration File.
 
 
@@ -54,7 +54,7 @@ You can also start FenixQuartz manually or by other means if you did not let the
 It does not open a Window when started, but you should see it in the System-Tray/Notification Area once it runs (a little "Q"). It is designed to run silently in the Background. It will stop itself when you exit MSFS.<br/>
 When you right click on that Icon you have the option to manually close it or to force a Memory Scan manually.<br/>
 When you left click on the Icon it will open its "Debug UI" displaying all Values as they are read from Memory. It is only really there to verify/troubleshoot found the correct Memory Locations (and uses valid Values).<br/><br/>
-When you use it for Quartz Displays you don't have to scan anything manually - just start FenixQuartz and load up the Fenix and you're done. *BUT* if you use for the **TO-/V-Speeds** you need to initiate a **manual Scan** to pick them up once they are entered in the MCDU! See [Scan for TO-/V-Speeds](#Scan-for-tovspeeds) for Details.<br/><br/>
+When you use it for Quartz Displays you don't have to scan anything manually - just start FenixQuartz and load up the Fenix and you're done. *BUT* if you use for the **TO-/V-Speeds** you need to initiate a **manual Scan** to pick them up once they are entered in the MCDU! See [Scan for TO-/V-Speeds](#scan-for-to-v-speeds) for Details.<br/><br/>
 **NOTE**: The Tool must be run with the **same Elevation/User** as MSFS and Fenix! If you for whatever Reason run them "as Admin", make sure to start that Tool also as Admin! It is not needed for the Tool itself, it runs just fine if everything is started with you normal User.<br/><br/>
 The Accuracy/Reliability is very high, especially the VATSIM/IVAO critical Stuff (FCU, COM, XPDR) is 99% solid! But there is still some Guess-Work involved in choosing the correct Memory-Location for Output, so don't mind if a Battery-Display or the Rudder-Display are just zero from time-to-time. The VS-Mode Detection is now better than ever, but it might still miss it in rare Cases. If the VS-Display is not correct, push/pull either the Alt- or VS-Knob (depending on the Situation) to get it back in line. If you're testing the FCU-Displays on the Ground, please do so before loading/configuring the Flightplan in the MCDU and with the Plane started in Cold & Dark Mode. It is designed to be accurate where it matters most: in the Air :wink:
 
