@@ -9,6 +9,7 @@
    <add key="rawValues" value="false" />
    <add key="useLvars" value="false" />
    <add key="updateIntervall" value="100" />
+   <add key="scaleMachValue" value="false"/>
    <add key="altScaleDelim" value=" "/>
    <add key="addFcuMode" value="true"/>
    <add key="ooMode" value="false"/>

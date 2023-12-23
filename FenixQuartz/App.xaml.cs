@@ -21,6 +21,7 @@ namespace FenixQuartz
         public static bool rawValues;
         public static bool useLvars;
         public static int updateIntervall;
+        public static bool scaleMachValue;
         public static string altScaleDelim;
         public static bool addFcuMode;
         public static bool ooMode;
@@ -54,6 +55,7 @@ namespace FenixQuartz
             rawValues = Convert.ToBoolean(ConfigurationFile.GetSetting("rawValues", "false"));
             useLvars = Convert.ToBoolean(ConfigurationFile.GetSetting("useLvars", "false"));
             updateIntervall = Convert.ToInt32(ConfigurationFile.GetSetting("updateIntervall", "100"));
+            scaleMachValue = Convert.ToBoolean(ConfigurationFile.GetSetting("scaleMachValue", "false"));
             altScaleDelim = Convert.ToString(ConfigurationFile.GetSetting("altScaleDelim", " "));
             addFcuMode = Convert.ToBoolean(ConfigurationFile.GetSetting("addFcuMode", "true"));
             ooMode = Convert.ToBoolean(ConfigurationFile.GetSetting("ooMode", "false"));

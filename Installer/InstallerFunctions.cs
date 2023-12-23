@@ -66,21 +66,55 @@ namespace Installer
                     }
                     else
                     {
-                        string pattern = @"^RunIf(\d+).*FenixQuartz\.exe";
-                        if (Regex.IsMatch(fileContent, pattern, RegexOptions.Compiled | RegexOptions.Multiline))
+                        RegexOptions regOptions = RegexOptions.Compiled | RegexOptions.Multiline;
+                        var runMatches = Regex.Matches(fileContent, @"[;]{0,1}Run(\d+).*", regOptions);
+                        int lastRun = 0;
+                        if (runMatches.Count > 0 && runMatches[runMatches.Count - 1].Groups.Count == 2)
+                            lastRun = Convert.ToInt32(runMatches[runMatches.Count - 1].Groups[1].Value);
+
+                        var runIfMatches = Regex.Matches(fileContent, @"[;]{0,1}RunIf(\d+).*", regOptions);
+                        int lastRunIf = 0;
+                        if (runIfMatches.Count > 0 && runIfMatches[runIfMatches.Count - 1].Groups.Count == 2)
+                            lastRunIf = Convert.ToInt32(runIfMatches[runIfMatches.Count - 1].Groups[1].Value);
+
+                        if (Regex.IsMatch(fileContent, @"^[;]{0,1}Run(\d+).*FenixQuartz\.exe", regOptions))
                         {
-                            fileContent = Regex.Replace(fileContent, pattern, $"RunIf$1={programParam},KILL,{Parameters.binPath}", RegexOptions.Compiled | RegexOptions.Multiline);
+                            fileContent = Regex.Replace(fileContent, @"^[;]{0,1}Run(\d+).*FenixQuartz\.exe", $"RunIf{lastRunIf + 1}={programParam},KILL,{Parameters.binPath}", regOptions);
+                            File.WriteAllText(regPath, fileContent, Encoding.Default);
+                            result = true;
+                        }
+                        else if (Regex.IsMatch(fileContent, @"^[;]{0,1}RunIf(\d+).*FenixQuartz\.exe", regOptions))
+                        {
+                            fileContent = Regex.Replace(fileContent, @"^[;]{0,1}RunIf(\d+).*FenixQuartz\.exe", $"RunIf$1={programParam},KILL,{Parameters.binPath}", regOptions);
                             File.WriteAllText(regPath, fileContent, Encoding.Default);
                             result = true;
                         }
                         else
                         {
-                            int posLastRunBegin = fileContent.LastIndexOf("RunIf");
-                            int posLastRunEnd = fileContent.IndexOf('\n', posLastRunBegin);
-                            int lastIndex = Convert.ToInt32(fileContent.Substring(posLastRunBegin + 5, 1));
-                            fileContent = fileContent.Insert(posLastRunEnd + 1, $"RunIf{lastIndex + 1}={programParam},KILL,{Parameters.binPath}\r\n");
-                            File.WriteAllText(regPath, fileContent, Encoding.Default);
-                            result = true;
+                            int index = -1;
+                            if (runIfMatches.Count > 0 && runMatches.Count > 0)
+                            {
+                                index = runIfMatches[runIfMatches.Count - 1].Index + runIfMatches[runIfMatches.Count - 1].Length;
+                                if (runMatches[runMatches.Count - 1].Index > runIfMatches[runIfMatches.Count - 1].Index)
+                                    index = runMatches[runMatches.Count - 1].Index + runMatches[runMatches.Count - 1].Length;
+                            }
+                            else if (runIfMatches.Count > 0)
+                                index = runIfMatches[runIfMatches.Count - 1].Index + runIfMatches[runIfMatches.Count - 1].Length;
+                            else if (runMatches.Count > 0)
+                                index = runMatches[runMatches.Count - 1].Index + runMatches[runMatches.Count - 1].Length;
+
+                            if (index > 0)
+                            {
+                                fileContent = fileContent.Insert(index + 1, $"RunIf{lastRunIf + 1}={programParam},KILL,{Parameters.binPath}\r\n");
+                                File.WriteAllText(regPath, fileContent, Encoding.Default);
+                                result = true;
+                            }
+                            else
+                            {
+                                fileContent = Regex.Replace(fileContent, @"^\[Programs\]\r\n", $"[Programs]\r\nRunIf{lastRunIf + 1}={programParam},KILL,{Parameters.binPath}\r\n", regOptions);
+                                File.WriteAllText(regPath, fileContent, Encoding.Default);
+                                result = true;
+                            }
                         }
                     }
                 }

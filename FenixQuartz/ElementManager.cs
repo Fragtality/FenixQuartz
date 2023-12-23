@@ -522,7 +522,7 @@ namespace FenixQuartz
                         if (isModeSpd)
                             result += value.ToString("D3");
                         else
-                            result += "." + value.ToString();
+                            result += "0." + value.ToString();
 
                         if (isSpdManaged)
                             result += "*";
@@ -652,14 +652,15 @@ namespace FenixQuartz
 
         private void UpdateRawFCU()
         {
-            //SPD
-            bool isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
-
+            bool isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
             float fvalue;
             if (isSpdManaged)
                 fvalue = MemoryValues["fcuSpdManaged"].GetValue();
             else
                 fvalue = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
+
+            if (App.scaleMachValue && !isModeSpd)
+                fvalue /= 100.0f;
 
             IPCValues["fcuSpd"].SetValue(fvalue);
             if (MemoryValues["fcuSpdDashed"].GetValue())
