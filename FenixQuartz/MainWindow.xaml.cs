@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -11,6 +12,10 @@ namespace FenixQuartz
         public MainWindow()
         {
             InitializeComponent();
+
+            string assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            assemblyVersion = assemblyVersion[0..assemblyVersion.LastIndexOf('.')];
+            Title += " (" + assemblyVersion + ")";
 
             timer = new DispatcherTimer
             {

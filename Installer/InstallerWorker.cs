@@ -179,6 +179,8 @@ namespace Installer
 
             if (CfgAutoStart == AutoStart.FSUIPC)
             {
+                messageList.Enqueue("Check/Remove MSFS Auto-Start ...");
+                InstallerFunctions.AutoStartExe(true);
                 messageList.Enqueue("Setup FSUIPC Auto-Start ...");
                 if (InstallerFunctions.AutoStartFsuipc())
                     messageList.Enqueue("Auto-Start added successfully!");
@@ -191,6 +193,8 @@ namespace Installer
 
             if (CfgAutoStart == AutoStart.EXE)
             {
+                messageList.Enqueue("Check/Remove FSUIPC Auto-Start ...");
+                InstallerFunctions.AutoStartFsuipc(true);
                 messageList.Enqueue("Setup EXE.xml Auto-Start ...");
                 if (InstallerFunctions.AutoStartExe())
                     messageList.Enqueue("Auto-Start added successfully!");
@@ -199,6 +203,14 @@ namespace Installer
                     messageList.Enqueue("Failed to add Auto-Start!");
                     HasError = true;
                 }
+            }
+
+            if (CfgAutoStart == AutoStart.REMOVE)
+            {
+                messageList.Enqueue("Check/Remove FSUIPC Auto-Start ...");
+                InstallerFunctions.AutoStartFsuipc(true);
+                messageList.Enqueue("Check/Remove MSFS Auto-Start ...");
+                InstallerFunctions.AutoStartExe(true);
             }
         }
     }

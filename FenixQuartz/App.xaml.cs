@@ -1,6 +1,7 @@
 ﻿using H.NotifyIcon;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -68,6 +69,13 @@ namespace FenixQuartz
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            if (Process.GetProcessesByName("FenixQuartz").Length > 1)
+            {
+                MessageBox.Show("FenixQuartz is already running!", "Critical Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
 
             Directory.SetCurrentDirectory(AppDir);
 
