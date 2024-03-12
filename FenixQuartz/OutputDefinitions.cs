@@ -43,7 +43,7 @@ namespace FenixQuartz
             if (!App.rawValues)
             {
                 //FCU
-                definitions.Add(AddIpcOffset("fcuSpdStr", "string", 10, ref nextOffset));
+                definitions.Add(AddIpcOffset("fcuSpdStr", "string", 11, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuHdgStr", "string", 9, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuAltStr", "string", 8, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuVsStr", "string", 10, ref nextOffset));
@@ -51,40 +51,31 @@ namespace FenixQuartz
                 //ISIS
                 definitions.Add(AddIpcOffset("isisStr", "string", 6, ref nextOffset));
 
-                //COM1 standby
+                //COM1+2
+                definitions.Add(AddIpcOffset("com1ActiveStr", "string", 8, ref nextOffset));
                 definitions.Add(AddIpcOffset("com1StandbyStr", "string", 8, ref nextOffset));
+                definitions.Add(AddIpcOffset("com2ActiveStr", "string", 8, ref nextOffset));
+                definitions.Add(AddIpcOffset("com2StandbyStr", "string", 8, ref nextOffset));
 
                 //XPDR
                 definitions.Add(AddIpcOffset("xpdrStr", "string", 5, ref nextOffset));
 
-                if (!App.ignoreBatteries)
-                {
-                    //BAT1
-                    definitions.Add(AddIpcOffset("bat1Str", "string", 5, ref nextOffset));
+                //BAT1
+                definitions.Add(AddIpcOffset("bat1Str", "string", 5, ref nextOffset));
 
-                    //BAT2
-                    definitions.Add(AddIpcOffset("bat2Str", "string", 5, ref nextOffset));
-                }
+                //BAT2
+                definitions.Add(AddIpcOffset("bat2Str", "string", 5, ref nextOffset));
 
                 //RUDDER
                 definitions.Add(AddIpcOffset("rudderStr", "string", 6, ref nextOffset));
 
-                //VS Selected
-                definitions.Add(AddIpcOffset("isVsActive", "string", 2, ref nextOffset));
-
-                //COM1 active
-                definitions.Add(AddIpcOffset("com1ActiveStr", "string", 8, ref nextOffset));
-
-                //COM2
-                definitions.Add(AddIpcOffset("com2StandbyStr", "string", 8, ref nextOffset));
-                definitions.Add(AddIpcOffset("com2ActiveStr", "string", 8, ref nextOffset));
-
-                //CHR + ET
+                //Clock, CHR + ET
                 definitions.Add(AddIpcOffset("clockChrStr", "string", 6, ref nextOffset));
+                definitions.Add(AddIpcOffset("clockTimeStr", "string", 9, ref nextOffset));
                 definitions.Add(AddIpcOffset("clockEtStr", "string", 6, ref nextOffset));
 
                 //BARO
-                definitions.Add(AddIpcOffset("baroCptStr", "string", 6, ref nextOffset));
+                definitions.Add(AddIpcOffset("baroCptStr", "string", 6, ref nextOffset));                
             }
             //// RAW VALUES (Offset)
             else if (!App.useLvars)
@@ -99,21 +90,20 @@ namespace FenixQuartz
                 definitions.Add(AddIpcOffset("isisStd", "byte", 1, ref nextOffset));
                 definitions.Add(AddIpcOffset("isisBaro", "float", 4, ref nextOffset));
 
-                //COM1
+                //COM1+2
                 definitions.Add(AddIpcOffset("com1Active", "int", 4, ref nextOffset));
                 definitions.Add(AddIpcOffset("com1Standby", "int", 4, ref nextOffset));
+                definitions.Add(AddIpcOffset("com2Active", "int", 4, ref nextOffset));
+                definitions.Add(AddIpcOffset("com2Standby", "int", 4, ref nextOffset));
 
                 //XPDR
                 definitions.Add(AddIpcOffset("xpdr", "short", 2, ref nextOffset));
 
-                if (!App.ignoreBatteries)
-                {
-                    //BAT1
-                    definitions.Add(AddIpcOffset("bat1", "float", 4, ref nextOffset));
+                //BAT1
+                definitions.Add(AddIpcOffset("bat1", "float", 4, ref nextOffset));
 
-                    //BAT2
-                    definitions.Add(AddIpcOffset("bat2", "float", 4, ref nextOffset));
-                }
+                //BAT2
+                definitions.Add(AddIpcOffset("bat2", "float", 4, ref nextOffset));
                 
                 //RUDDER
                 definitions.Add(AddIpcOffset("rudder", "float", 4, ref nextOffset));
@@ -123,24 +113,18 @@ namespace FenixQuartz
                 definitions.Add(AddIpcOffset("fcuHdgDashed", "byte", 1, ref nextOffset));
                 definitions.Add(AddIpcOffset("fcuVsDashed", "byte", 1, ref nextOffset));
 
-                //COM2
-                definitions.Add(AddIpcOffset("com2Active", "int", 4, ref nextOffset));
-                definitions.Add(AddIpcOffset("com2Standby", "int", 4, ref nextOffset));
-
-                //VS Selected
-                definitions.Add(AddIpcOffset("isVsActive", "byte", 1, ref nextOffset));
-
-                //CHR + ET
+                //Clock, CHR + ET
                 definitions.Add(AddIpcOffset("clockChr", "int", 4, ref nextOffset));
+                definitions.Add(AddIpcOffset("clockTime", "int", 4, ref nextOffset));
                 definitions.Add(AddIpcOffset("clockEt", "int", 4, ref nextOffset));
-
+                
                 //XPDR Digits
                 definitions.Add(AddIpcOffset("xpdrDigits", "short", 2, ref nextOffset));
 
                 //BARO
                 definitions.Add(AddIpcOffset("baroCpt", "float", 4, ref nextOffset));
                 definitions.Add(AddIpcOffset("baroCptStd", "byte", 1, ref nextOffset));
-                definitions.Add(AddIpcOffset("baroCptMb", "byte", 1, ref nextOffset));
+                definitions.Add(AddIpcOffset("baroCptMb", "byte", 1, ref nextOffset));                
             }
             //// RAW VALUES (L-Var)
             else
@@ -150,7 +134,6 @@ namespace FenixQuartz
                 definitions.Add(new OutputDefinition("fcuHdg"));
                 definitions.Add(new OutputDefinition("fcuAlt"));
                 definitions.Add(new OutputDefinition("fcuVs"));
-                definitions.Add(new OutputDefinition("isVsActive"));
 
                 //FCU Dashes
                 definitions.Add(new OutputDefinition("fcuSpdDashed"));
@@ -173,20 +156,18 @@ namespace FenixQuartz
                 definitions.Add(new OutputDefinition("xpdr"));
                 definitions.Add(new OutputDefinition("xpdrDigits"));
 
-                if (!App.ignoreBatteries)
-                {
-                    //BAT1
-                    definitions.Add(new OutputDefinition("bat1"));
+                //BAT1
+                definitions.Add(new OutputDefinition("bat1"));
 
-                    //BAT2
-                    definitions.Add(new OutputDefinition("bat2"));
-                }
+                //BAT2
+                definitions.Add(new OutputDefinition("bat2"));
 
                 //RUDDER
                 definitions.Add(new OutputDefinition("rudder"));
 
                 //CHR + ET
                 definitions.Add(new OutputDefinition("clockChr"));
+                definitions.Add(new OutputDefinition("clockTime"));
                 definitions.Add(new OutputDefinition("clockEt"));
 
                 //BARO

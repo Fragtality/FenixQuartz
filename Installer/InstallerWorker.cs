@@ -155,7 +155,7 @@ namespace Installer
 
             if (!File.Exists(Parameters.confFile) || CfgConfigFile > 0)
             {
-                messageList.Enqueue($"Creating Config File ({CfgConfigFile.ToString()}) ...");
+                messageList.Enqueue($"Creating Config File ({CfgConfigFile}) ...");
                 using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(confFile))
                 {
                     using (var file = new FileStream(Parameters.confFile, FileMode.Create, FileAccess.Write))

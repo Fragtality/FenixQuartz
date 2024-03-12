@@ -36,8 +36,8 @@ namespace FenixQuartz
 
         public string GetSetting(string key, string defaultValue = "")
         {
-            if (appSettings.ContainsKey(key))
-                return appSettings[key];
+            if (appSettings.TryGetValue(key, out string value))
+                return value;
             else
             {
                 XmlNode newNode = xmlDoc.CreateElement("add");

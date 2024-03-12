@@ -82,9 +82,9 @@ namespace FenixQuartz
             List<MemoryPattern> list;
             foreach (var pattern in patterns)
             {
-                if (uniquePatterns.ContainsKey(pattern.Pattern))
+                if (uniquePatterns.TryGetValue(pattern.Pattern, out List<MemoryPattern> value))
                 {
-                    list = uniquePatterns[pattern.Pattern];
+                    list = value;
                     if (list != null)
                     {
                         list.Add(pattern);

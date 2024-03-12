@@ -15,76 +15,48 @@ namespace FenixQuartz
 
         protected Dictionary<string, IPCValue> IPCValues;
         protected MemoryScanner Scanner;
+        protected FenixInterface.FenixInterface FenixGateway;
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
+        
         private bool firstUpdate = true;
-
-        public float lastSwitchVS;
-        public float lastSwitchAlt;
         public float lastSwitchBaroStd;
-
-        public bool lastVSdashed = false;
-        public int lastVSval = 0;
-        public bool lastALTmanaged = false;
-        public bool lastHDGmanaged = false;
-        public bool isAltVsMode = false;
         public bool isLightTest = false;
         public bool isAltManaged = false;
         public bool isHdgManaged = false;
+        public bool isHdgDashed = false;
         public bool isSpdManaged = false;
-        public bool fcuNotInitialized = true;
+        public bool isSpdDashed = false;
+        public bool isModeSpd = false;
+        public bool isModeHdgVs = false;
+        public bool isVsDashed = false;
         public bool fcuIsPowered = false;
         public int speedV1 = 0;
         public int speedVR = 0;
         public int speedV2 = 0;
-        public int lastPerfButton = 0;
-        public int msSincePerfChange = 0;
-        public bool perfWasScanned = false;
-        public bool perfIsSet = false;
-        public int perfReadTicks = 0;
+        public int toFlex = 0;
         public bool isBaroStd = false;
 
-        public bool simOnGround = true;
-        public bool departed = false;
-        public bool engineMastersOn = false;
-        public double groundSpeed = 0.0f;
+        private int appTick = 0;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
-            IPCValues = new ();
-            MemoryValues = new ();
+            IPCValues = new();
+            MemoryValues = new();
+            FenixGateway = new();
             Definitions = definitions;
 
             //// MEMORY PATTERNS
             MemoryPatterns = new()
             {
-                { "FCU-1", new MemoryPattern("46 00 43 00 55 00 20 00 70 00 6F 00 77 00 65 00 72 00 20 00 69 00 6E 00 70 00 75 00 74 00") },
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
                 { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
                 { "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
-                { "XPDR-1", new MemoryPattern("58 00 50 00 44 00 52 00 20 00 63 00 68 00 61 00 72 00 61 00 63 00 74 00 65 00 72 00 73 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 65 00 64") },
-                { "BAT1-1", new MemoryPattern("42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00") },
-                { "BAT2-1", new MemoryPattern("61 00 69 00 72 00 63 00 72 00 61 00 66 00 74 00 2E 00 65 00 6C 00 65 00 63 00 74 00 72 00 69 00 63 00 61 00 6C 00 2E 00 62 00 61 00 74 00 74 00 65 00 72 00 79 00 31 00 2E") },
-                { "BAT2-2", new MemoryPattern("00 00 42 00 61 00 74 00 74 00 65 00 72 00 79 00 20 00 32 00") },
-                { "RUDDER-1", new MemoryPattern("00 00 52 00 75 00 64 00 64 00 65 00 72 00 20 00 74 00 72 00 69 00 6D 00 20 00 64 00 69 00 73 00 70 00 6C 00 61 00 79 00 20 00 64 00 61 00 73 00 68 00 65 00 64 00") },
-                { "PERF", new MemoryPattern("?? ?? ?? ?? ?? 7F 00 00 00 00 00 00 00 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00 01 00 00 00 ?? 00 00 00", 2) },
             };
 
             InitializeScanner();
 
 
             //// MEMORY VALUES
-            //FCU
-            AddMemoryValue("fcuSpd", MemoryPatterns["FCU-1"], -0x6C, 8, "double");
-            AddMemoryValue("fcuSpdManaged", MemoryPatterns["FCU-1"], -0x28, 4, "int");
-            AddMemoryValue("fcuSpdDashed", MemoryPatterns["FCU-2"], -0x90C, 1, "bool");
-            AddMemoryValue("fcuHdgManaged", MemoryPatterns["FCU-1"], -0x20, 4, "int");
-            AddMemoryValue("fcuHdg", MemoryPatterns["FCU-1"], -0x60, 4, "int");
-            AddMemoryValue("fcuHdgDashed", MemoryPatterns["FCU-2"], -0x1764, 1, "bool");
-            AddMemoryValue("fcuAlt", MemoryPatterns["FCU-1"], -0x5C, 4, "int");
-            AddMemoryValue("fcuVsManaged", MemoryPatterns["FCU-1"], -0x18, 4, "int");
-            AddMemoryValue("fcuVs", MemoryPatterns["FCU-1"], -0x64, 4, "int");
-            AddMemoryValue("fcuVsDashed", MemoryPatterns["FCU-2"], -0x66C, 1, "bool");
-
             //ISIS
             AddMemoryValue("isisStd1", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
             AddMemoryValue("isisBaro1", MemoryPatterns["ISIS-1"], -0xEC, 8, "double");
@@ -93,52 +65,14 @@ namespace FenixQuartz
             AddMemoryValue("isisStd3", MemoryPatterns["ISIS-2"], -0x3F, 1, "bool");
             AddMemoryValue("isisBaro3", MemoryPatterns["ISIS-2"], -0x64, 8, "double");
 
-            //COM1
-            AddMemoryValue("com1Standby", MemoryPatterns["FCU-2"], +0x45C, 4, "int");
-            AddMemoryValue("com1Active", MemoryPatterns["FCU-2"], +0x444, 4, "int");
-
-            //COM2
-            AddMemoryValue("com2Active", MemoryPatterns["FCU-2"], +0x3E4, 4, "int");
-            AddMemoryValue("com2Standby", MemoryPatterns["FCU-2"], +0x3FC, 4, "int");
-
             //XPDR
-            AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
+            //AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
             AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
-            AddMemoryValue("xpdrDigits", MemoryPatterns["FCU-2"], +0x90C, 2, "int");
-
-            //BAT
-            if (!App.ignoreBatteries)
-            {
-                //BAT1
-                AddMemoryValue("bat1Display", MemoryPatterns["BAT1-1"], -0x2C, 8, "double");
-                AddMemoryValue("bat1Display21", MemoryPatterns["BAT2-1"], -0x2B4C, 8, "double");
-
-                //BAT2
-                AddMemoryValue("bat2Display1", MemoryPatterns["BAT2-1"], +0x51C, 8, "double");
-                AddMemoryValue("bat2Display2", MemoryPatterns["BAT2-2"], -0x282, 8, "double");
-            }
+            //AddMemoryValue("xpdrDigits", MemoryPatterns["FCU-2"], +0x90C, 2, "int");
 
             //RUDDER
-            AddMemoryValue("rudderDisplay1", MemoryPatterns["RUDDER-1"], 0xB9E, 8, "double");
-            AddMemoryValue("rudderDisplay2", MemoryPatterns["RUDDER-1"], 0xBCE, 8, "double");
-            AddMemoryValue("rudderDisplay3", MemoryPatterns["RUDDER-1"], 0xB1E, 8, "double");
-            AddMemoryValue("rudderDisplay4", MemoryPatterns["RUDDER-1"], 0xB6E, 8, "double");
-            AddMemoryValue("rudderDisplay5", MemoryPatterns["RUDDER-1"], 0xB46, 8, "double");
             AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D4C, 1, "bool");
             AddMemoryValue("rudderDashed2", MemoryPatterns["FCU-2"], -0x4D64, 1, "bool");
-
-            //CHR / ET
-            AddMemoryValue("clockCHR", MemoryPatterns["FCU-2"], -0x54, 4, "int");
-            AddMemoryValue("clockET", MemoryPatterns["FCU-2"], -0x3C, 4, "int");
-
-            //TO Speeds
-            AddMemoryValue("speedV1", MemoryPatterns["PERF"], +0x14, 4, "int");
-            AddMemoryValue("speedVR", MemoryPatterns["PERF"], +0x24, 4, "int");
-            AddMemoryValue("speedV2", MemoryPatterns["PERF"], +0x1C, 4, "int");
-
-            //VAPP manual
-            AddMemoryValue("speedVAPP", MemoryPatterns["PERF"], +0x134, 4, "int");
-
 
             //// STRING VALUES - StreamDeck
             if (!App.rawValues)
@@ -163,38 +97,43 @@ namespace FenixQuartz
             AddIpcLvar("speedV1");
             AddIpcLvar("speedVR");
             AddIpcLvar("speedV2");
-            AddIpcLvar("speedVAPP");
+            AddIpcLvar("toFlex");
 
-            IPCManager.SimConnect.SubscribeSimVar("SIM ON GROUND", "Bool");
-            IPCManager.SimConnect.SubscribeSimVar("GPS GROUND SPEED", "Meters per second");
             IPCManager.SimConnect.SubscribeLvar("S_OH_IN_LT_ANN_LT");
-            IPCManager.SimConnect.SubscribeLvar("S_FCU_VERTICAL_SPEED");
-            IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE");
-            IPCManager.SimConnect.SubscribeLvar("E_FCU_VS");
+            IPCManager.SimConnect.SubscribeLvar("B_FCU_POWER"); 
             IPCManager.SimConnect.SubscribeLvar("I_FCU_TRACK_FPA_MODE");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_VS_MODE");
+            IPCManager.SimConnect.SubscribeLvar("N_FCU_SPEED");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_SPEED_MODE");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_SPEED_MANAGED");
+            IPCManager.SimConnect.SubscribeLvar("B_FCU_SPEED_DASHED");
+            IPCManager.SimConnect.SubscribeLvar("N_FCU_HEADING");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_HEADING_MANAGED");
+            IPCManager.SimConnect.SubscribeLvar("B_FCU_HEADING_DASHED");
+            IPCManager.SimConnect.SubscribeLvar("N_FCU_ALTITUDE");
             IPCManager.SimConnect.SubscribeLvar("I_FCU_ALTITUDE_MANAGED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_ALTITUDE_SCALE");
+            IPCManager.SimConnect.SubscribeLvar("N_FCU_VS");
+            IPCManager.SimConnect.SubscribeLvar("B_FCU_VERTICALSPEED_DASHED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_MODE");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_STD");
-            IPCManager.SimConnect.SubscribeLvar("S_ENG_MASTER_1");
-            IPCManager.SimConnect.SubscribeLvar("S_ENG_MASTER_2");
+            IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_UTC");
+            IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_ELAPSED");
+            IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_CHRONO");
+            IPCManager.SimConnect.SubscribeLvar("N_FREQ_XPDR_SELECTED");
+            IPCManager.SimConnect.SubscribeLvar("N_PED_XPDR_CHAR_DISPLAYED");
+            IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_1");
+            IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_2");
+            IPCManager.SimConnect.SubscribeLvar("N_FC_RUDDER_TRIM_DECIMAL");
             IPCManager.SimConnect.SubscribeSimVar("KOHLSMAN SETTING MB:1", "Millibars");
-            IPCManager.SimConnect.SubscribeLvar("I_CDU1_FM");
-            if (App.perfCaptainSide)
-                IPCManager.SimConnect.SubscribeLvar("S_CDU1_KEY_PERF");
-            else
-                IPCManager.SimConnect.SubscribeLvar("S_CDU2_KEY_PERF");
-            string com = "1";
-            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
-            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
-            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ADF");
-            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF1");
-            IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF2");
-            com = "2";
+            SubscribeRmpVars("1");
+            SubscribeRmpVars("2");
+        }
+
+        private static void SubscribeRmpVars(string com)
+        {
+            IPCManager.SimConnect.SubscribeLvar($"N_PED_RMP{com}_ACTIVE");
+            IPCManager.SimConnect.SubscribeLvar($"N_PED_RMP{com}_STDBY");
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_VOR");
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ILS");
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_ADF");
@@ -258,76 +197,19 @@ namespace FenixQuartz
             GC.SuppressFinalize(this);
         }
 
-        private void CheckFCU()
+        private bool CheckIsisLocation(string num)
         {
-            fcuIsPowered = IPCManager.SimConnect.ReadLvar("I_FCU_TRACK_FPA_MODE") == 1 || IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
-            isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
-            isAltManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
-            isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
-            int alt = (int)(MemoryValues["fcuAlt"].GetValue() ?? 0);
-            int spd = (int)(MemoryValues["fcuSpd"].GetValue() ?? 0);
-            int hdg = (int)(MemoryValues["fcuHdg"].GetValue() ?? 0);
-
-            if (alt < 100 || alt > 49000 || spd < 0 || spd > 401 || hdg < 0 || hdg > 361)
-            {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckFCU", $"Memory Locations changed (FCU-Check)! Rescanning ...");
-                System.Threading.Thread.Sleep(500);
-                Rescan();
-            }
+            double baro = MemoryValues[$"isisBaro{num}"].GetValue();
+            return baro > 0 && baro < 10000;
         }
 
-        private void CheckPerfButton()
+        private void CheckMemoryValues()
         {
-            int perfButton = GetPerfButton();
-
-            if (firstUpdate)
+            if (!(CheckIsisLocation("1") || CheckIsisLocation("2") || CheckIsisLocation("3")))
             {
-                lastPerfButton = perfButton;
-                msSincePerfChange = 0;
-                return;
-            }
-
-            if (msSincePerfChange == 0 && lastPerfButton != perfButton)
-            {
-                if (lastPerfButton < perfButton && lastPerfButton + 2 != perfButton)
-                {
-                    Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"Timer for PERF-Button started");
-                    msSincePerfChange = App.updateIntervall;
-                }
-                lastPerfButton = perfButton;
-            }
-            else if (msSincePerfChange != 0 && lastPerfButton == perfButton)
-            {
-                msSincePerfChange += App.updateIntervall;
-                if (msSincePerfChange >= App.perfButtonHold)
-                {
-                    msSincePerfChange = 0;
-                    Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"PERF-Button was hold for over {App.perfButtonHold}ms - Rescannning ...");
-                    WriteMcduDash(1);
-                    System.Threading.Thread.Sleep(500);
-                    Rescan();
-                    WriteMcduDash(0);
-                    perfWasScanned = true;
-                    lastPerfButton = GetPerfButton();
-                }
-            }
-            else if (msSincePerfChange != 0 && lastPerfButton != perfButton)
-            {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"Timer for PERF-Button stopped");
-                msSincePerfChange = 0;
-                lastPerfButton = perfButton;
-            }
-
-            if (!perfWasScanned && !perfIsSet && !departed && simOnGround && groundSpeed >= 10 && engineMastersOn)
-            {
-                msSincePerfChange = 0;
-                Logger.Log(LogLevel.Information, "ElementManager:CheckPerfButton", $"Aircraft moving on Ground (with no PerfScan) - Rescannning ...");
-                WriteMcduDash(1);
+                Logger.Log(LogLevel.Information, "ElementManager:CheckMemoryValues", $"Memory Locations changed! Rescanning ...");
                 System.Threading.Thread.Sleep(500);
                 Rescan();
-                WriteMcduDash(0);
-                perfWasScanned = true;
-                lastPerfButton = GetPerfButton();
             }
         }
 
@@ -342,21 +224,28 @@ namespace FenixQuartz
 
         private void UpdateSimVars()
         {
-            groundSpeed = IPCManager.SimConnect.ReadSimVar("GPS GROUND SPEED", "Meters per second") * 1.94384;
-            simOnGround = IPCManager.SimConnect.ReadSimVar("SIM ON GROUND", "Bool") != 0.0f;
-            engineMastersOn = IPCManager.SimConnect.ReadLvar("S_ENG_MASTER_1") == 1 && IPCManager.SimConnect.ReadLvar("S_ENG_MASTER_2") == 1;
             isLightTest = IPCManager.SimConnect.ReadLvar("S_OH_IN_LT_ANN_LT") == 2;
-            if (!departed && !simOnGround)
+            fcuIsPowered = IPCManager.SimConnect.ReadLvar("B_FCU_POWER") == 1;
+            isSpdManaged = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MANAGED") == 1;
+            isSpdDashed = IPCManager.SimConnect.ReadLvar("B_FCU_SPEED_DASHED") == 1;
+            isAltManaged = IPCManager.SimConnect.ReadLvar("I_FCU_ALTITUDE_MANAGED") == 1;
+            isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
+            isHdgDashed = IPCManager.SimConnect.ReadLvar("B_FCU_HEADING_DASHED") == 1;
+            isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
+            isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
+            isVsDashed = IPCManager.SimConnect.ReadLvar("B_FCU_VERTICALSPEED_DASHED") == 1;
+        }
+
+        private void UpdateFenixVars()
+        {
+            if (appTick % 3 == 0)
             {
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateSimVars", $"Plane in 'departed' State");
-                departed = true;
+                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v1"), out speedV1);
+                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v2"), out speedV2);
+                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.vr"), out speedVR);
+                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.flexTemp"), out toFlex);
             }
-            if (departed && simOnGround && !engineMastersOn)
-            {
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateSimVars", $"Plane not in 'departed' State");
-                departed = false;
-                perfIsSet = false;
-            }
+            appTick++;
         }
 
         public bool GenerateValues()
@@ -369,17 +258,15 @@ namespace FenixQuartz
                     return false;
                 }
                 UpdateSimVars();
-                CheckFCU();
-                CheckPerfButton();
+                UpdateFenixVars();
+                CheckMemoryValues();
 
-                UpdateFMA();
                 UpdateFCU();
                 UpdateISIS();
                 UpdateCom("1");
                 UpdateCom("2");
                 UpdateXpdr();
-                if (!App.ignoreBatteries)
-                    UpdateBatteries();
+                UpdateBatteries();
                 UpdateRudder();
                 UpdateClock();
                 UpdateSpeeds();
@@ -393,86 +280,10 @@ namespace FenixQuartz
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"Exception '{ex.GetType()}' - '{ex.Message}' ({ex.StackTrace})");
                 return false;
-            }
-        }
-
-        private void UpdateFMA()
-        {
-            int vsVal = MemoryValues["fcuVs"].GetValue() ?? 0;
-            int vsValMng = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-            bool isDashed = MemoryValues["fcuVsDashed"].GetValue();
-            if (!firstUpdate && !isAltVsMode && vsVal != 0 && lastVSval != vsVal && vsValMng == 0 && !isDashed)
-            {
-                isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (VS-Value (FMA) changed when isAltVsMode was false)");
-            }
-            lastVSval = vsVal;
-
-            if (!isSpdManaged && !isHdgManaged && simOnGround && !fcuNotInitialized)
-            {
-                fcuNotInitialized = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to TRUE");
-            }
-            else if (!simOnGround && fcuNotInitialized)
-            {
-                fcuNotInitialized = false;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to FALSE (not on Ground)");
-            }
-            else if ((isSpdManaged || isHdgManaged) && fcuNotInitialized)
-            {
-                fcuNotInitialized = false;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting fcuNotInitialized to FALSE (SPD or HDG managed)");
-            }
-
-            float switchAlt = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE");
-            if (switchAlt != lastSwitchAlt || isDashed)
-            {
-                isAltVsMode = false;
-                if (lastVSdashed != isDashed)
-                    Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to FALSE (Alt-Knob or Dashed)");
-            }
-            lastSwitchAlt = switchAlt;
-
-            float switchVS = IPCManager.SimConnect.ReadLvar("S_FCU_VERTICAL_SPEED");
-            if (switchVS != lastSwitchVS && !firstUpdate)
-            {
-                isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (VS-Knob)");
-            }
-            lastSwitchVS = switchVS;           
-            
-            if (!isAltManaged && isAltManaged != lastALTmanaged && lastVSdashed != isDashed && !isDashed && !firstUpdate)
-            {
-                isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Alt-Dot changed and Dashed changed)");
-            }
-
-            if (isHdgManaged != lastHDGmanaged && lastVSdashed != isDashed && !isDashed)
-            {
-                isAltVsMode = true;
-                Logger.Log(LogLevel.Debug, "ElementManager:UpdateFMA", $"Setting isAltVsMode to TRUE (Hdg-Dot changed and Dashed changed)");
-            }
-
-            lastHDGmanaged = isHdgManaged;
-            lastALTmanaged = isAltManaged;
-            lastVSdashed = isDashed;
-
-            if (!App.rawValues)
-            {
-                if (isAltVsMode)
-                    IPCValues["isVsActive"].SetValue("1");
-                else
-                    IPCValues["isVsActive"].SetValue("0");
-            }
-            else
-            {
-                if (isAltVsMode)
-                    IPCValues["isVsActive"].SetValue((byte)1);
-                else
-                    IPCValues["isVsActive"].SetValue((byte)0);
             }
         }
 
@@ -483,9 +294,6 @@ namespace FenixQuartz
                 UpdateRawFCU();
                 return;
             }
-
-            bool isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
-            bool isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
             bool isAltHundred = IPCManager.SimConnect.ReadLvar("S_FCU_ALTITUDE_SCALE") == 0;
             
             //SPEED
@@ -509,24 +317,22 @@ namespace FenixQuartz
                             result = "MACH\n";
                     }
 
-                    int value;
-                    if (isSpdManaged)
-                        value = MemoryValues["fcuSpdManaged"].GetValue();
-                    else
-                        value = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
+                    int value = (int)IPCManager.SimConnect.ReadLvar("N_FCU_SPEED");
 
-                    if (MemoryValues["fcuSpdDashed"].GetValue())
-                        result += "---*";
-                    else
+                    if (isSpdDashed)
                     {
                         if (isModeSpd)
-                            result += value.ToString("D3");
+                            result += "---";
                         else
-                            result += "0." + value.ToString();
-
-                        if (isSpdManaged)
-                            result += "*";
+                            result += "-.--";
                     }
+                    else if (isModeSpd)
+                        result += value.ToString("D3");
+                    else
+                        result += "0." + value.ToString();
+
+                    if (isSpdManaged)
+                        result += "*";
                 }
             }
             IPCValues["fcuSpdStr"].SetValue(result);
@@ -552,25 +358,13 @@ namespace FenixQuartz
                             result = "TRK\n";
                     }
 
-                    bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
-
-                    string hdgMng = MemoryValues["fcuHdgManaged"].GetValue()?.ToString("D3") ?? "000";
-                    string hdg = MemoryValues["fcuHdg"].GetValue()?.ToString("D3") ?? "000";
-                    string value = hdg;
-                    if (isHdgManaged && !isHdgDashed && hdgMng != "000")
-                        value = hdgMng;
-
-
                     if (isHdgDashed)
-                        result += "---*";
+                        result += "---";
                     else
-                    {
-                        result += value;
-                        if (isHdgManaged)
-                        {
-                            result += "*";
-                        }
-                    }
+                        result += ((int)IPCManager.SimConnect.ReadLvar("N_FCU_HEADING")).ToString("D3");
+
+                    if (isHdgManaged)
+                        result += "*";
                 }
             }
             IPCValues["fcuHdgStr"].SetValue(result);
@@ -583,7 +377,7 @@ namespace FenixQuartz
                     result = "88888*";
                 else
                 {
-                    result = MemoryValues["fcuAlt"].GetValue()?.ToString("D5") ?? "00100";
+                    result = ((int)IPCManager.SimConnect.ReadLvar("N_FCU_ALTITUDE")).ToString("D5");
                     if (isAltHundred && !string.IsNullOrEmpty(App.altScaleDelim))
                         result = result.Insert(2, App.altScaleDelim);
                     if (isAltManaged)
@@ -613,14 +407,14 @@ namespace FenixQuartz
                             result = "FPA\n";
                     }
 
-                    int vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-                    if (isAltVsMode && !fcuNotInitialized)
+                    int vs = (int)IPCManager.SimConnect.ReadLvar("N_FCU_VS");
+                    if (isVsDashed)
                     {
-                        vs = MemoryValues["fcuVs"].GetValue() ?? 0;
+                        if (isModeHdgVs)
+                            result += "-----";
+                        else
+                            result += "--.-";
                     }
-
-                    if (MemoryValues["fcuVsDashed"].GetValue())
-                        result += "-----";
                     else if (isModeHdgVs)
                     {
                         if (vs >= 0)
@@ -652,50 +446,32 @@ namespace FenixQuartz
 
         private void UpdateRawFCU()
         {
-            bool isModeSpd = IPCManager.SimConnect.ReadLvar("I_FCU_SPEED_MODE") == 1;
-            float fvalue;
-            if (isSpdManaged)
-                fvalue = MemoryValues["fcuSpdManaged"].GetValue();
-            else
-                fvalue = (int)Math.Round(MemoryValues["fcuSpd"].GetValue());
+            float fvalue = IPCManager.SimConnect.ReadLvar("N_FCU_SPEED");
 
             if (App.scaleMachValue && !isModeSpd)
                 fvalue /= 100.0f;
 
             IPCValues["fcuSpd"].SetValue(fvalue);
-            if (MemoryValues["fcuSpdDashed"].GetValue())
+            if (isSpdDashed)
                 IPCValues["fcuSpdDashed"].SetValue((byte)1);
             else
                 IPCValues["fcuSpdDashed"].SetValue((byte)0);
 
             //HDG
-            bool isHdgManaged = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_MANAGED") == 1;
-            bool isHdgDashed = MemoryValues["fcuHdgDashed"].GetValue();
-
-            int hdgMng = MemoryValues["fcuHdgManaged"].GetValue() ?? 0;
-            int hdg = MemoryValues["fcuHdg"].GetValue() ?? 0;
-            int ivalue = hdg;
-            if (isHdgManaged && !isHdgDashed && hdgMng != 0)
-                ivalue = hdgMng;
-
-            IPCValues["fcuHdg"].SetValue(ivalue);
-            if (MemoryValues["fcuHdgDashed"].GetValue())
+            IPCValues["fcuHdg"].SetValue((int)IPCManager.SimConnect.ReadLvar("N_FCU_HEADING"));
+            if (isHdgDashed)
                 IPCValues["fcuHdgDashed"].SetValue((byte)1);
             else
                 IPCValues["fcuHdgDashed"].SetValue((byte)0);
 
 
             //ALT
-            IPCValues["fcuAlt"].SetValue((int)(MemoryValues["fcuAlt"].GetValue() ?? 100));
+            IPCValues["fcuAlt"].SetValue((int)IPCManager.SimConnect.ReadLvar("N_FCU_ALTITUDE"));
 
             //VS
-            bool isModeHdgVs = IPCManager.SimConnect.ReadLvar("I_FCU_HEADING_VS_MODE") == 1;
-
-            float vs = MemoryValues["fcuVsManaged"].GetValue() ?? 0;
-            if (!MemoryValues["fcuVsDashed"].GetValue())
+            float vs = IPCManager.SimConnect.ReadLvar("N_FCU_VS");
+            if (!isVsDashed)
             {
-                if (isAltVsMode && !fcuNotInitialized)
-                    vs = MemoryValues["fcuVs"].GetValue() ?? 0;
                 if (!isModeHdgVs)
                     vs = (float)Math.Round(vs / 1000.0f, 1);
             }
@@ -703,7 +479,7 @@ namespace FenixQuartz
                 vs = 0.0f;
 
             IPCValues["fcuVs"].SetValue(vs);
-            if (MemoryValues["fcuVsDashed"].GetValue())
+            if (isVsDashed)
                 IPCValues["fcuVsDashed"].SetValue((byte)1);
             else
                 IPCValues["fcuVsDashed"].SetValue((byte)0);
@@ -756,8 +532,8 @@ namespace FenixQuartz
 
         private void UpdateCom(string com)
         {
-            int valueActive = MemoryValues[$"com{com}Active"].GetValue() ?? 0;
-            int valueStandby = MemoryValues[$"com{com}Standby"].GetValue() ?? 0;
+            int valueActive = (int)IPCManager.SimConnect.ReadLvar($"N_PED_RMP{com}_ACTIVE");
+            int valueStandby = (int)IPCManager.SimConnect.ReadLvar($"N_PED_RMP{com}_STDBY");
 
             bool courseMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_VOR") == 1 || IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ILS") == 1;
             bool adfMode = IPCManager.SimConnect.ReadLvar($"I_PED_RMP{com}_ADF") == 1;
@@ -845,19 +621,17 @@ namespace FenixQuartz
         {
             string result;
             int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
-            int disp = MemoryValues["xpdrDisplay"].GetValue() ?? 0;
-            int digits = MemoryValues["xpdrDigits"].GetValue() ?? 0;
+            int disp = (int)IPCManager.SimConnect.ReadLvar("N_FREQ_XPDR_SELECTED");
+            int digits = (int)IPCManager.SimConnect.ReadLvar("N_PED_XPDR_CHAR_DISPLAYED");
 
-            if (isLightTest)
+            if (isLightTest && disp >= 0)
                 result = "8888";
-            else if (digits == 0 || MemoryValues[$"com2Active"].GetValue() == -1)
+            else if (digits == 0 || disp == -1)
                 result = "";
-            else if (input != -1 && digits != 4)
+            else if (digits < 4 && input >= 0)
                 result = input.ToString($"D{digits}");
-            else if (disp > 0 && disp <= 7777)
+            else if (digits == 4)
                 result = disp.ToString($"D{digits}");
-            else if (input > 0 && input <= 7777)
-                result = input.ToString($"D{digits}");
             else
                 result = "";
 
@@ -866,7 +640,7 @@ namespace FenixQuartz
             else
             {
                 IPCValues["xpdrDigits"].SetValue((short)digits);
-                if (result == "")
+                if (disp == -1)
                     IPCValues["xpdr"].SetValue((short)-1);
                 else if (short.TryParse(result, out short shortValue))
                     IPCValues["xpdr"].SetValue(shortValue);
@@ -879,93 +653,23 @@ namespace FenixQuartz
 
         private void UpdateBatteries()
         {
-            double value = MemoryValues["bat1Display"].GetValue() ?? 0.0;
-            if (value <= 0 || value >= 42)
-                value = MemoryValues["bat1Display21"].GetValue() ?? 0.0;
+            if (!App.rawValues)
+                IPCValues["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", IPCManager.SimConnect.ReadLvar("N_ELEC_VOLT_BAT_1")));
+            else
+                IPCValues["bat1"].SetValue(IPCManager.SimConnect.ReadLvar("N_ELEC_VOLT_BAT_1"));
 
             if (!App.rawValues)
-                IPCValues["bat1Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
+                IPCValues["bat2Str"].SetValue(string.Format(formatInfo, "{0:F1}", IPCManager.SimConnect.ReadLvar("N_ELEC_VOLT_BAT_2")));
             else
-                IPCValues["bat1"].SetValue((float)Math.Round(value,1));
-
-            value = MemoryValues["bat2Display1"].GetValue() ?? 0.0;
-            if (value == 0.0 || MemoryValues["bat2Display1"].IsTinyValue() || double.IsNaN(value))
-                value = MemoryValues["bat2Display2"].GetValue() ?? 0.0;
-
-            if (value != 0)
-            {
-                if (!App.rawValues)
-                    IPCValues["bat2Str"].SetValue(string.Format(formatInfo, "{0:F1}", value));
-                else
-                    IPCValues["bat2"].SetValue((float)Math.Round(value,1));
-            }
-        }
-
-        private bool IsRudderValueValid(string index)
-        {
-            double value = MemoryValues[index].GetValue() ?? double.NaN;
-            return !double.IsNaN(value) && !MemoryValues[index].IsTinyValue() && value >= -20.0 && value <= 20.0;
+                IPCValues["bat2"].SetValue(IPCManager.SimConnect.ReadLvar("N_ELEC_VOLT_BAT_2"));
         }
 
         private void UpdateRudder()
         { 
-            double disp1 = MemoryValues["rudderDisplay1"].GetValue() ?? double.NaN;
-            bool disp1Valid = IsRudderValueValid("rudderDisplay1");
-            double disp2 = MemoryValues["rudderDisplay2"].GetValue() ?? double.NaN;
-            bool disp2Valid = IsRudderValueValid("rudderDisplay2");
-            double disp3 = MemoryValues["rudderDisplay3"].GetValue() ?? double.NaN;
-            bool disp3Valid = IsRudderValueValid("rudderDisplay3");
-            double disp4 = MemoryValues["rudderDisplay4"].GetValue() ?? double.NaN;
-            bool disp4Valid = IsRudderValueValid("rudderDisplay4");
-            double disp5 = MemoryValues["rudderDisplay5"].GetValue() ?? double.NaN;
-            bool disp5Valid = IsRudderValueValid("rudderDisplay5");
-
             bool isDashed = !(MemoryValues["rudderDashed1"].GetValue() ?? false) && !(MemoryValues["rudderDashed2"].GetValue() ?? false);
+            float value = IPCManager.SimConnect.ReadLvar("N_FC_RUDDER_TRIM_DECIMAL") / 10;        
 
-            double value = 0.0;
-            if (disp1Valid)
-            {
-                value = disp1;
-                if (disp2Valid && value == 0.0 && disp2 != 0.0)
-                    value = disp2;
-                else if (disp3Valid && value == 0.0 && disp3 != 0.0)
-                    value = disp3;
-                else if (disp4Valid && value == 0.0 && disp4 != 0.0)
-                    value = disp4;
-                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
-                    value = disp5;
-            }
-            else if (disp2Valid)
-            {
-                value = disp2;
-                if (disp3Valid && value == 0.0 && disp3 != 0.0)
-                    value = disp3;
-                else if (disp4Valid && value == 0.0 && disp4 != 0.0)
-                    value = disp4;
-                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
-                    value = disp5;
-            }
-            else if (disp3Valid)
-            {
-                value = disp3;
-                if (disp4Valid && value == 0.0 && disp4 != 0.0)
-                    value = disp4;
-                else if (disp5Valid && value == 0.0 && disp5 != 0.0)
-                    value = disp5;
-            }
-            else if (disp4Valid)
-            {
-                value = disp4;
-                if (disp5Valid && value == 0.0 && disp5 != 0.0)
-                    value = disp5;
-            }
-            else if (disp5Valid)
-            {
-                value = disp5;
-            }
-
-            bool power = MemoryValues[$"com2Active"].GetValue() != -1;
-            value = Math.Round(value, 2);
+            bool power = IPCManager.SimConnect.ReadLvar("N_PED_RMP2_ACTIVE") != -1;
             if (!App.rawValues)
             {
                 string result;
@@ -993,7 +697,7 @@ namespace FenixQuartz
             else
             {
                 if (power && !isDashed)
-                    IPCValues["rudder"].SetValue((float)Math.Round(value, 1));
+                    IPCValues["rudder"].SetValue(value);
                 else if (!power)
                     IPCValues["rudder"].SetValue((float)Math.Round(value, -1));
                 else if (isDashed)
@@ -1003,113 +707,66 @@ namespace FenixQuartz
 
         private void UpdateClock()
         {
-            UpdateClock("clockCHR", "clockChrStr", "clockChr");
-            UpdateClock("clockET", "clockEtStr", "clockEt");
+            UpdateClock("N_MIP_CLOCK_CHRONO", "clockChrStr", "clockChr");
+            UpdateClock("N_MIP_CLOCK_ELAPSED", "clockEtStr", "clockEt");
+
+            float clock = IPCManager.SimConnect.ReadLvar("N_MIP_CLOCK_UTC");
+            if (!App.rawValues)
+            {
+                string result = "";
+
+                if (isLightTest && clock >= 0)
+                    IPCValues["clockTime"].SetValue("88:88:88");
+                else if (clock >= 0)
+                {
+                    int hours = (int)(clock / 10000.0f);
+                    int minutes = (int)((clock - hours * 10000) / 100);
+                    int seconds = (int)(clock - hours * 10000 - minutes * 100);
+
+                    result = string.Format("{0:D2}:{1:D2}:{2:D2}", hours, minutes, seconds);
+                }
+
+                IPCValues["clockTimeStr"].SetValue(result);
+            }
+            else
+            {
+                if (isLightTest && clock >= 0)
+                    IPCValues["clockTime"].SetValue(888888);
+                else
+                    IPCValues["clockTime"].SetValue((int)clock);
+            }
         }
 
-        private void UpdateClock(string memName, string strName, string numName)
+        private void UpdateClock(string lvar, string strName, string numName)
         {
-            int num = MemoryValues[memName].GetValue();
+            int num = (int)IPCManager.SimConnect.ReadLvar(lvar);
             int upper = num / 100;
             int lower = num % 100;
 
             if (!App.rawValues)
             {
-                if (isLightTest)
+                if (isLightTest && num >= 0)
                     IPCValues[strName].SetValue("88:88");
-                else if (num != -1)
+                else if (num >= 0)
                     IPCValues[strName].SetValue(string.Format("{0:D2}:{1:D2}", upper, lower));
                 else
                     IPCValues[strName].SetValue("");
             }
             else
             {
-                if (isLightTest)
+                if (isLightTest && num >= 0)
                     IPCValues[numName].SetValue(8888);
                 else
                     IPCValues[numName].SetValue(num);
             }
         }
 
-        private static bool SpeedIsValid(int speed)
-        {
-            return speed >= 80 && speed <= 180;
-        }
-
-        private static bool SpeedsAreValid(int v1, int v2, int vr)
-        {
-            return SpeedIsValid(v1) && SpeedIsValid(v2) && SpeedIsValid(vr);
-        }
-
         private void UpdateSpeeds()
         {
-            int v1 = MemoryValues["speedV1"].GetValue() ?? 0;
-            int vr = MemoryValues["speedVR"].GetValue() ?? 0;
-            int v2 = MemoryValues["speedV2"].GetValue() ?? 0;
-            int vapp = MemoryValues["speedVAPP"].GetValue() ?? -1;
-
-            if (SpeedsAreValid(v1, v2, vr) && perfWasScanned)
-            {
-                if (perfReadTicks == 0)
-                    WriteMcduReady(1);
-
-                perfReadTicks++;
-                
-                if (perfReadTicks > 10)
-                {
-                    speedV1 = v1;
-                    speedVR = vr;
-                    speedV2 = v2;
-                    perfWasScanned = false;
-                    perfIsSet = true;
-                    perfReadTicks = 0;
-                    WriteMcduReady(0);
-                }
-            }
-
-            if (!SpeedsAreValid(v1, v2, vr) && SpeedsAreValid(speedV1, speedV2, speedVR))
-            {
-                v1 = speedV1;
-                vr = speedVR;
-                v2 = speedV2;
-                vapp = -1;
-            }
-
-            IPCValues["speedV1"].SetValue(v1);
-            IPCValues["speedVR"].SetValue(vr);
-            IPCValues["speedV2"].SetValue(v2);
-            IPCValues["speedVAPP"].SetValue(vapp);
-        }
-
-        public static int GetPerfButton()
-        {
-            if (App.perfCaptainSide)
-                return (int)IPCManager.SimConnect.ReadLvar("S_CDU1_KEY_PERF");
-            else
-                return (int)IPCManager.SimConnect.ReadLvar("S_CDU2_KEY_PERF");
-        }
-
-        public static void PushButton(string lvar)
-        {
-            IPCManager.SimConnect.WriteLvar(lvar, 1);
-            System.Threading.Thread.Sleep(150);
-            IPCManager.SimConnect.WriteLvar(lvar, 0);
-        }
-
-        public static void WriteMcduDash(int value)
-        {
-            if (App.perfCaptainSide)
-                IPCManager.SimConnect.WriteLvar("I_CDU1_DASH", value);
-            else
-                IPCManager.SimConnect.WriteLvar("I_CDU2_DASH", value);
-        }
-
-        public static void WriteMcduReady(int value)
-        {
-            if (App.perfCaptainSide)
-                IPCManager.SimConnect.WriteLvar("I_CDU1_RDY", value);
-            else
-                IPCManager.SimConnect.WriteLvar("I_CDU2_RDY", value);
+            IPCValues["speedV1"].SetValue(speedV1);
+            IPCValues["speedVR"].SetValue(speedVR);
+            IPCValues["speedV2"].SetValue(speedV2);
+            IPCValues["toFlex"].SetValue(toFlex);
         }
 
         public void UpdateBaro()

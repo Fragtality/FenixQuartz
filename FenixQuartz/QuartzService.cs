@@ -185,6 +185,7 @@ namespace FenixQuartz
             output.AppendLine(App.lvarPrefix + "speedV1");
             output.AppendLine(App.lvarPrefix + "speedVR");
             output.AppendLine(App.lvarPrefix + "speedV2");
+            output.AppendLine(App.lvarPrefix + "toFlex");
 
             File.WriteAllText("..\\Assignments.txt", output.ToString());
         }

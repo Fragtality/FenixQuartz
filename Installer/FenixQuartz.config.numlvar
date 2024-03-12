@@ -14,7 +14,4 @@
    <add key="addFcuMode" value="true"/>
    <add key="ooMode" value="false"/>
    <add key="lvarPrefix" value="FNX2PLD_"/>
-   <add key="ignoreBatteries" value="false"/>
-   <add key="perfCaptainSide" value="true"/>
-   <add key="perfButtonHold" value="1000"/>
  </appSettings>

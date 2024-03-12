@@ -27,9 +27,6 @@ namespace FenixQuartz
         public static bool addFcuMode;
         public static bool ooMode;
         public static string lvarPrefix;
-        public static bool ignoreBatteries;
-        public static bool perfCaptainSide;
-        public static int perfButtonHold;
         public static string groupName = "FenixQuartz";
 
         public static new App Current => Application.Current as App;
@@ -61,9 +58,6 @@ namespace FenixQuartz
             addFcuMode = Convert.ToBoolean(ConfigurationFile.GetSetting("addFcuMode", "true"));
             ooMode = Convert.ToBoolean(ConfigurationFile.GetSetting("ooMode", "false"));
             lvarPrefix = Convert.ToString(ConfigurationFile.GetSetting("lvarPrefix", "FNX2PLD_"));
-            ignoreBatteries = Convert.ToBoolean(ConfigurationFile.GetSetting("ignoreBatteries", "false"));
-            perfCaptainSide = Convert.ToBoolean(ConfigurationFile.GetSetting("perfCaptainSide", "true"));
-            perfButtonHold = Convert.ToInt32(ConfigurationFile.GetSetting("perfButtonHold", "1000"));
         }
         
         protected override void OnStartup(StartupEventArgs e)
