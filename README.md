@@ -65,7 +65,7 @@ FenixQuartz normally exports the Display-Values as formatted Strings for drawing
 
 **NOTE**: The Raw-Value Modes are now considered deprecated! They will be removed in the future Releases. Most Data can now be directly accessed via native Fenix L-Vars, so it is now only copying the Value from L-Var "A" to "B" mostly.
 
-Regardless of Mode or Output: The Binary will create a File called **Assignments.txt** (located in %appdata\FenixQuartz) when executed which will tell you the Name/Location of the Values (even when no Sim is running). Please note that this is in Accordance to the current Configuration, so you only see the Name/Location for the currently configured Mode and Output! Also note that the TO-Speeds are always exported as L-Vars, regardless of the current Configuration.
+Regardless of Mode or Output: The Binary will create a File called **Assignments.txt** (located in %appdata%\FenixQuartz) when executed which will tell you the Name/Location of the Values (even when no Sim is running). Please note that this is in Accordance to the current Configuration, so you only see the Name/Location for the currently configured Mode and Output! Also note that the TO-Speeds are always exported as L-Vars, regardless of the current Configuration.
 
 <br/><br/><br/>
 
