@@ -11,7 +11,7 @@
     <SignAssembly>False</SignAssembly>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
-    <Version>1.5</Version>
+    <Version>1.6</Version>
     <Copyright>Fragtality © 2024</Copyright>
     <Authors>Fragtality</Authors>
     <UseWPF>True</UseWPF>
@@ -42,9 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="FenixInterface">
-      <HintPath>FenixInterface.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.FlightSimulator.SimConnect">
       <HintPath>Microsoft.FlightSimulator.SimConnect.dll</HintPath>
 	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
@@ -56,9 +53,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="FenixInterface.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="FenixQuartz.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

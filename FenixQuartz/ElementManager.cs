@@ -15,11 +15,11 @@ namespace FenixQuartz
 
         protected Dictionary<string, IPCValue> IPCValues;
         protected MemoryScanner Scanner;
-        protected FenixInterface.FenixInterface FenixGateway;
+        //protected FenixInterface.FenixInterface FenixGateway;
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         
-        private bool firstUpdate = true;
-        public float lastSwitchBaroStd;
+        //private bool firstUpdate = true;
+        //public float lastSwitchBaroStd;
         public bool isLightTest = false;
         public bool isAltManaged = false;
         public bool isHdgManaged = false;
@@ -30,27 +30,27 @@ namespace FenixQuartz
         public bool isModeHdgVs = false;
         public bool isVsDashed = false;
         public bool fcuIsPowered = false;
-        public int speedV1 = 0;
-        public int speedVR = 0;
-        public int speedV2 = 0;
-        public int toFlex = 0;
+        //public int speedV1 = 0;
+        //public int speedVR = 0;
+        //public int speedV2 = 0;
+        //public int toFlex = 0;
         public bool isBaroStd = false;
 
-        private int appTick = 0;
+        //private int appTick = 0;
 
         public ElementManager(List<OutputDefinition> definitions)
         {
             IPCValues = new();
             MemoryValues = new();
-            FenixGateway = new();
+            //FenixGateway = new();
             Definitions = definitions;
 
             //// MEMORY PATTERNS
             MemoryPatterns = new()
             {
                 { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
-                { "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                { "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
+                //{ "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
+                //{ "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
             };
 
             InitializeScanner();
@@ -58,20 +58,20 @@ namespace FenixQuartz
 
             //// MEMORY VALUES
             //ISIS
-            AddMemoryValue("isisStd1", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
-            AddMemoryValue("isisBaro1", MemoryPatterns["ISIS-1"], -0xEC, 8, "double");
-            AddMemoryValue("isisStd2", MemoryPatterns["ISIS-1"], -0xDF, 1, "bool");
-            AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
-            AddMemoryValue("isisStd3", MemoryPatterns["ISIS-2"], -0x3F, 1, "bool");
-            AddMemoryValue("isisBaro3", MemoryPatterns["ISIS-2"], -0x64, 8, "double");
+            //AddMemoryValue("isisStd1", MemoryPatterns["ISIS-1"], -0xC7, 1, "bool");
+            //AddMemoryValue("isisBaro1", MemoryPatterns["ISIS-1"], -0xEC, 8, "double");
+            //AddMemoryValue("isisStd2", MemoryPatterns["ISIS-1"], -0xDF, 1, "bool");
+            //AddMemoryValue("isisBaro2", MemoryPatterns["ISIS-1"], -0x104, 8, "double");
+            //AddMemoryValue("isisStd3", MemoryPatterns["ISIS-2"], -0x3F, 1, "bool");
+            //AddMemoryValue("isisBaro3", MemoryPatterns["ISIS-2"], -0x64, 8, "double");
 
             //XPDR
             //AddMemoryValue("xpdrDisplay", MemoryPatterns["XPDR-1"], -0x110, 2, "int");
-            AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
+            //AddMemoryValue("xpdrInput", MemoryPatterns["FCU-2"], +0x714, 2, "int");
             //AddMemoryValue("xpdrDigits", MemoryPatterns["FCU-2"], +0x90C, 2, "int");
 
             //RUDDER
-            AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D4C, 1, "bool");
+            AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D4C, 1, "bool"); //B_FC_RUDDER_TRIM_DASHED
             AddMemoryValue("rudderDashed2", MemoryPatterns["FCU-2"], -0x4D64, 1, "bool");
 
             //// STRING VALUES - StreamDeck
@@ -93,11 +93,11 @@ namespace FenixQuartz
                     AddIpcLvar(def.ID);
             }
 
-            ////TO L-Vars
-            AddIpcLvar("speedV1");
-            AddIpcLvar("speedVR");
-            AddIpcLvar("speedV2");
-            AddIpcLvar("toFlex");
+            //////TO L-Vars
+            //AddIpcLvar("speedV1");
+            //AddIpcLvar("speedVR");
+            //AddIpcLvar("speedV2");
+            //AddIpcLvar("toFlex");
 
             IPCManager.SimConnect.SubscribeLvar("S_OH_IN_LT_ANN_LT");
             IPCManager.SimConnect.SubscribeLvar("B_FCU_POWER"); 
@@ -117,10 +117,16 @@ namespace FenixQuartz
             IPCManager.SimConnect.SubscribeLvar("B_FCU_VERTICALSPEED_DASHED");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_MODE");
             IPCManager.SimConnect.SubscribeLvar("S_FCU_EFIS1_BARO_STD");
+            IPCManager.SimConnect.SubscribeLvar("B_FCU_EFIS1_BARO_STD");
+            IPCManager.SimConnect.SubscribeLvar("B_MIP_ISFD_BARO_STD");
+            IPCManager.SimConnect.SubscribeLvar("B_MIP_ISFD_BARO_INCH");
+            IPCManager.SimConnect.SubscribeLvar("N_MIP_ISFD_BARO_HPA");
+            IPCManager.SimConnect.SubscribeLvar("N_MIP_ISFD_BARO_INCH");
             IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_UTC");
             IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_ELAPSED");
             IPCManager.SimConnect.SubscribeLvar("N_MIP_CLOCK_CHRONO");
             IPCManager.SimConnect.SubscribeLvar("N_FREQ_XPDR_SELECTED");
+            IPCManager.SimConnect.SubscribeLvar("N_FREQ_STANDBY_XPDR_SELECTED");
             IPCManager.SimConnect.SubscribeLvar("N_PED_XPDR_CHAR_DISPLAYED");
             IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_1");
             IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_2");
@@ -197,30 +203,30 @@ namespace FenixQuartz
             GC.SuppressFinalize(this);
         }
 
-        private bool CheckIsisLocation(string num)
-        {
-            double baro = MemoryValues[$"isisBaro{num}"].GetValue();
-            return baro > 0 && baro < 10000;
-        }
+        //private bool CheckIsisLocation(string num)
+        //{
+        //    double baro = MemoryValues[$"isisBaro{num}"].GetValue();
+        //    return baro > 250 && baro < 4000;
+        //}
 
-        private void CheckMemoryValues()
-        {
-            if (!(CheckIsisLocation("1") || CheckIsisLocation("2") || CheckIsisLocation("3")))
-            {
-                Logger.Log(LogLevel.Information, "ElementManager:CheckMemoryValues", $"Memory Locations changed! Rescanning ...");
-                System.Threading.Thread.Sleep(500);
-                Rescan();
-            }
-        }
+        //private void CheckMemoryValues()
+        //{
+        //    if (!(CheckIsisLocation("1") || CheckIsisLocation("2") || CheckIsisLocation("3")))
+        //    {
+        //        Logger.Log(LogLevel.Information, "ElementManager:CheckMemoryValues", $"Memory Locations changed! Rescanning ...");
+        //        System.Threading.Thread.Sleep(500);
+        //        Rescan();
+        //    }
+        //}
 
-        private void Rescan()
-        {
-            foreach (var pattern in MemoryPatterns.Values)
-                pattern.Location = 0;
-            InitializeScanner();
-            PrintReport();
-            Scanner.UpdateBuffers(MemoryValues);
-        }
+        //private void Rescan()
+        //{
+        //    foreach (var pattern in MemoryPatterns.Values)
+        //        pattern.Location = 0;
+        //    InitializeScanner();
+        //    PrintReport();
+        //    Scanner.UpdateBuffers(MemoryValues);
+        //}
 
         private void UpdateSimVars()
         {
@@ -236,17 +242,17 @@ namespace FenixQuartz
             isVsDashed = IPCManager.SimConnect.ReadLvar("B_FCU_VERTICALSPEED_DASHED") == 1;
         }
 
-        private void UpdateFenixVars()
-        {
-            if (appTick % 3 == 0)
-            {
-                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v1"), out speedV1);
-                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v2"), out speedV2);
-                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.vr"), out speedVR);
-                _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.flexTemp"), out toFlex);
-            }
-            appTick++;
-        }
+        //private void UpdateFenixVars()
+        //{
+        //    if (appTick % 3 == 0)
+        //    {
+        //        _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v1"), out speedV1);
+        //        _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.v2"), out speedV2);
+        //        _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.vr"), out speedVR);
+        //        _ = int.TryParse(FenixGateway.FenixGetVariable("aircraft.fms.perf.takeOff.flexTemp"), out toFlex);
+        //    }
+        //    appTick++;
+        //}
 
         public bool GenerateValues()
         {
@@ -258,8 +264,8 @@ namespace FenixQuartz
                     return false;
                 }
                 UpdateSimVars();
-                UpdateFenixVars();
-                CheckMemoryValues();
+                //UpdateFenixVars();
+                //CheckMemoryValues();
 
                 UpdateFCU();
                 UpdateISIS();
@@ -269,14 +275,14 @@ namespace FenixQuartz
                 UpdateBatteries();
                 UpdateRudder();
                 UpdateClock();
-                UpdateSpeeds();
+                //UpdateSpeeds();
                 UpdateBaro();
 
                 if (!App.useLvars)
                     FSUIPCConnection.Process(App.groupName);
 
-                if (firstUpdate)
-                    firstUpdate = false;
+                //if (firstUpdate)
+                //    firstUpdate = false;
 
                 return true;
             }
@@ -488,19 +494,25 @@ namespace FenixQuartz
 
         private void UpdateISIS()
         {
-            double baro = MemoryValues["isisBaro1"].GetValue();
-            bool std = MemoryValues["isisStd1"].GetValue();
-            if (baro < 800 || baro > 1200)
-            {
-                baro = MemoryValues["isisBaro2"].GetValue();
-                std = MemoryValues["isisStd2"].GetValue();
-                if (baro < 800 || baro > 1200)
-                {
-                    baro = MemoryValues["isisBaro3"].GetValue();
-                    std = MemoryValues["isisStd3"].GetValue();
-                }
-            }
+            //double baro = MemoryValues["isisBaro1"].GetValue();
+            //bool std = MemoryValues["isisStd1"].GetValue();
+            //if (baro < 800 || baro > 1200)
+            //{
+            //    baro = MemoryValues["isisBaro2"].GetValue();
+            //    std = MemoryValues["isisStd2"].GetValue();
+            //    if (baro < 800 || baro > 1200)
+            //    {
+            //        baro = MemoryValues["isisBaro3"].GetValue();
+            //        std = MemoryValues["isisStd3"].GetValue();
+            //    }
+            //}
 
+            double hpa = IPCManager.SimConnect.ReadLvar("N_MIP_ISFD_BARO_HPA");
+            double inhg = IPCManager.SimConnect.ReadLvar("N_MIP_ISFD_BARO_INCH");
+            bool isInch = IPCManager.SimConnect.ReadLvar("B_MIP_ISFD_BARO_INCH") == 1;
+            bool std = IPCManager.SimConnect.ReadLvar("B_MIP_ISFD_BARO_STD") == 1;
+
+            double baro = 0;
             if (!App.rawValues)
             {
                 string result;
@@ -508,15 +520,15 @@ namespace FenixQuartz
                     result = "STD";
                 else
                 {
-                    bool isHpa = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_MODE") == 1;
-                    if (isHpa)
+                    //bool isHpa = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_MODE") == 1;
+                    if (!isInch)
                     {
-                        baro = Math.Round(baro, 0);
+                        baro = Math.Round(hpa, 0);
                         result = string.Format("{0,4:0000}", baro);
                     }
                     else
                     {
-                        baro = Math.Round(baro * 0.029529983071445, 2);
+                        baro = Math.Round(inhg, 0) / 100.0f;
                         result = string.Format(CultureInfo.InvariantCulture.NumberFormat, "{0:F2}", baro);
                     }
                 }
@@ -620,7 +632,8 @@ namespace FenixQuartz
         private void UpdateXpdr()
         {
             string result;
-            int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
+            //int input = MemoryValues["xpdrInput"].GetValue() ?? 0;
+            int input = (int)IPCManager.SimConnect.ReadLvar("N_FREQ_STANDBY_XPDR_SELECTED");
             int disp = (int)IPCManager.SimConnect.ReadLvar("N_FREQ_XPDR_SELECTED");
             int digits = (int)IPCManager.SimConnect.ReadLvar("N_PED_XPDR_CHAR_DISPLAYED");
 
@@ -761,32 +774,33 @@ namespace FenixQuartz
             }
         }
 
-        private void UpdateSpeeds()
-        {
-            IPCValues["speedV1"].SetValue(speedV1);
-            IPCValues["speedVR"].SetValue(speedVR);
-            IPCValues["speedV2"].SetValue(speedV2);
-            IPCValues["toFlex"].SetValue(toFlex);
-        }
+        //private void UpdateSpeeds()
+        //{
+        //    IPCValues["speedV1"].SetValue(speedV1);
+        //    IPCValues["speedVR"].SetValue(speedVR);
+        //    IPCValues["speedV2"].SetValue(speedV2);
+        //    IPCValues["toFlex"].SetValue(toFlex);
+        //}
 
         public void UpdateBaro()
         {
-            if (firstUpdate)
-            {
-                lastSwitchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
-                return;
-            }
+            //if (firstUpdate)
+            //{
+            //    lastSwitchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
+            //    return;
+            //}
 
-            float switchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
-            if (switchBaroStd != lastSwitchBaroStd)
-            {
-                if (switchBaroStd > lastSwitchBaroStd)
-                    isBaroStd = true;
-                else
-                    isBaroStd = false;
-                Logger.Log(LogLevel.Information, "ElementManager:UpdateBaro", $"Baro-Std changed: isBaroStd {isBaroStd}");
-                lastSwitchBaroStd = switchBaroStd;
-            }
+            //float switchBaroStd = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_STD");
+            //if (switchBaroStd != lastSwitchBaroStd)
+            //{
+            //    if (switchBaroStd > lastSwitchBaroStd)
+            //        isBaroStd = true;
+            //    else
+            //        isBaroStd = false;
+            //    Logger.Log(LogLevel.Information, "ElementManager:UpdateBaro", $"Baro-Std changed: isBaroStd {isBaroStd}");
+            //    lastSwitchBaroStd = switchBaroStd;
+            //}
+            isBaroStd = IPCManager.SimConnect.ReadLvar("B_FCU_EFIS1_BARO_STD") == 1;
 
             float pressure = IPCManager.SimConnect.ReadSimVar("KOHLSMAN SETTING MB:1", "Millibars");
             bool isHpa = IPCManager.SimConnect.ReadLvar("S_FCU_EFIS1_BARO_MODE") == 1;
