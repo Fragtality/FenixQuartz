@@ -1,7 +1,7 @@
 # FenixQuartz
 <img src="img/icon.png" width="196"><br/>
 This Tools extracts the Values of some important Quartz Displays of the Fenix (hence the Name) directly from Memory. The Values/Output are then exported to FSUIPC-Offsets as either String (default) or Numerical Value. The Export can also be configured to L-Vars (numerical). There they can be picked up from other Applications, like PilotsDeck to display the FCU or other Displays on the StreamDeck.<br/>
-Most Data is now retrieved via native Fenix L-Vars, but XPDR Input and Standby Baro still require to access Memory directly.<br/>Currently compatible with Fenix **V2B2** upwards and MSFS **SU14**.<br/><br/>
+Most Data is now retrieved via native Fenix L-Vars, but the Rudder Trim Dashed Indication still requires to access Memory directly.<br/>Currently compatible with Fenix **2.0.0.407** upwards and MSFS **SU14**.<br/><br/>
 Following Display-Values are available:
 - FCU Speed, Heading, Altitude and VS/FPA (Values and Is-Dashed State)
 - XPDR (live Input)
@@ -11,7 +11,6 @@ Following Display-Values are available:
 - BAT1 and BAT2
 - Rudder Trim
 - Clock CHR, UTC and ET
-- The Takeoff/V-Speeds and Flex Temperature as entered in the MCDU (fully automatic, no manual Intervention neccessary anymore)
 
 <br/><br/><br/>
 
@@ -65,7 +64,7 @@ FenixQuartz normally exports the Display-Values as formatted Strings for drawing
 
 **NOTE**: The Raw-Value Modes are now considered deprecated! They will be removed in the future Releases. Most Data can now be directly accessed via native Fenix L-Vars, so it is now only copying the Value from L-Var "A" to "B" mostly.
 
-Regardless of Mode or Output: The Binary will create a File called **Assignments.txt** (located in %appdata%\FenixQuartz) when executed which will tell you the Name/Location of the Values (even when no Sim is running). Please note that this is in Accordance to the current Configuration, so you only see the Name/Location for the currently configured Mode and Output! Also note that the TO-Speeds are always exported as L-Vars, regardless of the current Configuration.
+Regardless of Mode or Output: The Binary will create a File called **Assignments.txt** (located in %appdata%\FenixQuartz) when executed which will tell you the Name/Location of the Values (even when no Sim is running). Please note that this is in Accordance to the current Configuration, so you only see the Name/Location for the currently configured Mode and Output!
 
 <br/><br/><br/>
 
