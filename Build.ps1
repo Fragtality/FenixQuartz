@@ -1,6 +1,6 @@
 $projdir = "C:\Users\Fragtality\source\repos\FenixQuartz"
 $instBinDir = $projdir + "\Installer\bin\Release\app.publish"
-$version = "v1.7.0"
+$version = "v1.8.0"
 
 #Create Lock
 cd $projdir

@@ -123,7 +123,7 @@ namespace FenixQuartz
             if (elementManager == null)
                 throw new ArgumentException("ServiceLoop: ElementManager is null");
 
-            elementManager.PrintReport();
+            //elementManager.PrintReport();
             //Service Loop
             Stopwatch watch = new();
             int measures = 0;
@@ -180,12 +180,12 @@ namespace FenixQuartz
                 output.AppendLine(value.ToString());
             }
 
-            output.AppendLine("");
-            output.AppendLine("TO Speeds (always L-Vars):");
-            output.AppendLine(App.lvarPrefix + "speedV1");
-            output.AppendLine(App.lvarPrefix + "speedVR");
-            output.AppendLine(App.lvarPrefix + "speedV2");
-            output.AppendLine(App.lvarPrefix + "toFlex");
+            //output.AppendLine("");
+            //output.AppendLine("TO Speeds (always L-Vars):");
+            //output.AppendLine(App.lvarPrefix + "speedV1");
+            //output.AppendLine(App.lvarPrefix + "speedVR");
+            //output.AppendLine(App.lvarPrefix + "speedV2");
+            //output.AppendLine(App.lvarPrefix + "toFlex");
 
             File.WriteAllText("..\\Assignments.txt", output.ToString());
         }

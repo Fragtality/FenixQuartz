@@ -11,7 +11,7 @@
     <SignAssembly>False</SignAssembly>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
-    <Version>1.7</Version>
+    <Version>1.8</Version>
     <Copyright>Fragtality © 2024</Copyright>
     <Authors>Fragtality</Authors>
     <UseWPF>True</UseWPF>
@@ -33,10 +33,10 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="FSUIPCClientDLL" Version="3.3.11" />
-    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.131" />
+    <PackageReference Include="FSUIPCClientDLL" Version="3.3.12" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.1.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>

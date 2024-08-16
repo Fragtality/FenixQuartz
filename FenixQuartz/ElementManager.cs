@@ -1,20 +1,18 @@
 ﻿using FSUIPC;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 
 namespace FenixQuartz
 {
     public class ElementManager : IDisposable
     {
-        public Dictionary<string, MemoryPattern> MemoryPatterns;
-        public Dictionary<string, MemoryValue> MemoryValues;
+        //public Dictionary<string, MemoryPattern> MemoryPatterns;
+        //public Dictionary<string, MemoryValue> MemoryValues;
         protected List<OutputDefinition> Definitions;
 
         protected Dictionary<string, IPCValue> IPCValues;
-        protected MemoryScanner Scanner;
+        //protected MemoryScanner Scanner;
         public static readonly NumberFormatInfo formatInfo = new CultureInfo("en-US").NumberFormat;
         
         public bool isLightTest = false;
@@ -33,26 +31,26 @@ namespace FenixQuartz
         public ElementManager(List<OutputDefinition> definitions)
         {
             IPCValues = new();
-            MemoryValues = new();
+            //MemoryValues = new();
             Definitions = definitions;
 
             //// MEMORY PATTERNS
-            MemoryPatterns = new()
-            {
-                { "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
-                //{ "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
-                //{ "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
-            };
+            //MemoryPatterns = new()
+            //{
+            //    //{ "FCU-2", new MemoryPattern("00 00 00 00 CE 05 00 00 FF FF FF FF 00 00 00 80") },
+            //    //{ "ISIS-1", new MemoryPattern("49 00 53 00 49 00 53 00 20 00 70 00 6F 00 77 00 65 00 72 00 65 00 64 00") },
+            //    //{ "ISIS-2", new MemoryPattern("46 00 65 00 6E 00 69 00 78 00 42 00 72 00 61 00 6B 00 65 00 46 00 61 00 6E 00 73 00") },
+            //};
 
-            InitializeScanner();
+            //InitializeScanner();
 
 
             //// MEMORY VALUES
             //RUDDER
             //AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D4C, 1, "bool"); //B_FC_RUDDER_TRIM_DASHED
-            AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D1C, 1, "bool"); //B_FC_RUDDER_TRIM_DASHED
+            //AddMemoryValue("rudderDashed1", MemoryPatterns["FCU-2"], -0x4D1C, 1, "bool"); //B_FC_RUDDER_TRIM_DASHED
             //AddMemoryValue("rudderDashed2", MemoryPatterns["FCU-2"], -0x4D64, 1, "bool");
-            AddMemoryValue("rudderDashed2", MemoryPatterns["FCU-2"], -0x4D1C, 1, "bool");
+            //AddMemoryValue("rudderDashed2", MemoryPatterns["FCU-2"], -0x4D1C, 1, "bool");
 
             //// STRING VALUES - StreamDeck
             if (!App.rawValues)
@@ -105,6 +103,7 @@ namespace FenixQuartz
             IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_1");
             IPCManager.SimConnect.SubscribeLvar("N_ELEC_VOLT_BAT_2");
             IPCManager.SimConnect.SubscribeLvar("N_FC_RUDDER_TRIM_DECIMAL");
+            IPCManager.SimConnect.SubscribeLvar("B_FC_RUDDER_TRIM_DASHED");
             IPCManager.SimConnect.SubscribeSimVar("KOHLSMAN SETTING MB:1", "Millibars");
             SubscribeRmpVars("1");
             SubscribeRmpVars("2");
@@ -121,10 +120,10 @@ namespace FenixQuartz
             IPCManager.SimConnect.SubscribeLvar($"I_PED_RMP{com}_HF2");
         }
 
-        private void AddMemoryValue(string id, MemoryPattern pattern, long offset, int size, string type, bool castInt = false)
-        {
-            MemoryValues.Add(id, new MemoryValue(id, pattern, offset, size, type, castInt));
-        }
+        //private void AddMemoryValue(string id, MemoryPattern pattern, long offset, int size, string type, bool castInt = false)
+        //{
+        //    MemoryValues.Add(id, new MemoryValue(id, pattern, offset, size, type, castInt));
+        //}
 
         private void AddIpcOffset(string id, string type, int size, int offset)
         {
@@ -136,21 +135,21 @@ namespace FenixQuartz
             IPCValues.Add(id, new IPCValueLvar(id));
         }
 
-        private void InitializeScanner()
-        {
-            Process fenixProc = Process.GetProcessesByName(App.FenixExecutable).FirstOrDefault();
-            if (fenixProc != null)
-            {
-                Scanner = new MemoryScanner(fenixProc);
-            }
-            else
-            {
-                throw new NullReferenceException("Fenix Proc is NULL!");
-            }
+        //private void InitializeScanner()
+        //{
+        //    //Process fenixProc = Process.GetProcessesByName(App.FenixExecutable).FirstOrDefault();
+        //    //if (fenixProc != null)
+        //    //{
+        //    //    Scanner = new MemoryScanner(fenixProc);
+        //    //}
+        //    //else
+        //    //{
+        //    //    throw new NullReferenceException("Fenix Proc is NULL!");
+        //    //}
 
-            Logger.Log(LogLevel.Information, "ElementManager:InitializeScanner", $"Running Pattern Scan ... (Patterns#: {MemoryPatterns.Count})");
-            Scanner.SearchPatterns(MemoryPatterns.Values.ToList());
-        }
+        //    //Logger.Log(LogLevel.Information, "ElementManager:InitializeScanner", $"Running Pattern Scan ... (Patterns#: {MemoryPatterns.Count})");
+        //    //Scanner.SearchPatterns(MemoryPatterns.Values.ToList());
+        //}
 
         public void Dispose()
         {
@@ -165,14 +164,14 @@ namespace FenixQuartz
 
             IPCValues.Clear();
 
-            foreach (var value in MemoryValues.Values)
-            {
-                value.Dispose();
-            }
-            MemoryValues.Clear();
-            MemoryPatterns.Clear();
+            //foreach (var value in MemoryValues.Values)
+            //{
+            //    value.Dispose();
+            //}
+            //MemoryValues.Clear();
+            //MemoryPatterns.Clear();
 
-            Scanner = null;
+            //Scanner = null;
 
             GC.SuppressFinalize(this);
         }
@@ -195,11 +194,11 @@ namespace FenixQuartz
         {
             try
             {
-                if (!Scanner.UpdateBuffers(MemoryValues))
-                {
-                    Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"UpdateBuffers() failed");
-                    return false;
-                }
+                //if (!Scanner.UpdateBuffers(MemoryValues))
+                //{
+                //    Logger.Log(LogLevel.Error, "ElementManager:GenerateValues", $"UpdateBuffers() failed");
+                //    return false;
+                //}
                 UpdateSimVars();
 
                 UpdateFCU();
@@ -597,7 +596,7 @@ namespace FenixQuartz
 
         private void UpdateRudder()
         { 
-            bool isDashed = !(MemoryValues["rudderDashed1"].GetValue() ?? false) && !(MemoryValues["rudderDashed2"].GetValue() ?? false);
+            bool isDashed = IPCManager.SimConnect.ReadLvar("B_FC_RUDDER_TRIM_DASHED") == 1;
             float value = IPCManager.SimConnect.ReadLvar("N_FC_RUDDER_TRIM_DECIMAL") / 10;        
 
             bool power = IPCManager.SimConnect.ReadLvar("N_PED_RMP2_ACTIVE") != -1;
@@ -745,13 +744,13 @@ namespace FenixQuartz
             }
         }
 
-        public void PrintReport()
-        {
-            foreach (var value in MemoryValues.Values)
-            {
-                ulong location = MemoryScanner.CalculateLocation(value.Pattern.Location, value.PatternOffset);
-                Logger.Log(LogLevel.Information, "ElementManager:PrintReport", $"MemoryValue <{value.ID}> is at Address 0x{location:X} ({location:d})");
-            }
-        }
+        //public void PrintReport()
+        //{
+        //    //foreach (var value in MemoryValues.Values)
+        //    //{
+        //    //    ulong location = MemoryScanner.CalculateLocation(value.Pattern.Location, value.PatternOffset);
+        //    //    Logger.Log(LogLevel.Information, "ElementManager:PrintReport", $"MemoryValue <{value.ID}> is at Address 0x{location:X} ({location:d})");
+        //    //}
+        //}
     }
 }

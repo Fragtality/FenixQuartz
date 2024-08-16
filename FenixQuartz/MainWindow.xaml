@@ -36,14 +36,14 @@
                 <Label>xpdrInput</Label>
                 <Label Name="xpdrInput"></Label>
             </StackPanel>-->
-            <StackPanel Orientation="Horizontal">
+            <!--<StackPanel Orientation="Horizontal">
                 <Label>rudderDashed1</Label>
                 <Label Name="rudderDashed1"></Label>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label>rudderDashed2</Label>
                 <Label Name="rudderDashed2"></Label>
-            </StackPanel>
+            </StackPanel>-->
             <!--<StackPanel Orientation="Horizontal">
                 <Label>speedV1</Label>
                 <Label Name="speedV1"></Label>

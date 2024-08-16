@@ -6,7 +6,7 @@ namespace FenixQuartz
 {
     public class ConfigurationFile
     {
-        private Dictionary<string, string> appSettings = new();
+        private readonly Dictionary<string, string> appSettings = new();
         private XmlDocument xmlDoc = new();
 
         public string this[string key]

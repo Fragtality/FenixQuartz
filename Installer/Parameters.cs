@@ -17,15 +17,15 @@ namespace Installer
 
         public static readonly int netMajor = 7;
         public static readonly int netMinor = 0;
-        public static readonly int netPatch = 19;
+        public static readonly int netPatch = 20;
         public static readonly string netVersion = $"{netMajor}.{netMinor}.{netPatch}";
-        public static readonly string netUrl = "https://download.visualstudio.microsoft.com/download/pr/59f35686-7985-4356-9ed6-45bb943bd923/1d04faf7a23c79a5aa5edb6894245baa/windowsdesktop-runtime-7.0.19-win-x64.exe";
-        public static readonly string netUrlFile = "windowsdesktop-runtime-7.0.19-win-x64.exe";
+        public static readonly string netUrl = "https://download.visualstudio.microsoft.com/download/pr/08bbfe8f-812d-479f-803b-23ea0bffce47/c320e4b037f3e92ab7ea92c3d7ea3ca1/windowsdesktop-runtime-7.0.20-win-x64.exe";
+        public static readonly string netUrlFile = "windowsdesktop-runtime-7.0.20-win-x64.exe";
 
         public static readonly string ipcRegPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\FSUIPC7";
         public static readonly string ipcRegInstallDirValue = "InstallDir";
         public static readonly string ipcRegValue = "DisplayVersion";
-        public static readonly string ipcVersion = "7.4.12";
+        public static readonly string ipcVersion = "7.4.16";
 
         public static readonly Regex wasmRegex = new Regex("^\\s*\"package_version\":\\s*\"([0-9\\.]+)\"\\s*,\\s*$", RegexOptions.Compiled);
         public static readonly string wasmMobiName = "mobiflight-event-module";
