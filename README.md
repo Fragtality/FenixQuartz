@@ -1,7 +1,7 @@
 # FenixQuartz
 <img src="img/icon.png" width="196"><br/>
-This Tools extracts the Values of some important Quartz Displays of the Fenix (hence the Name) directly from Memory. The Values/Output are then exported to FSUIPC-Offsets as either String (default) or Numerical Value. The Export can also be configured to L-Vars (numerical). There they can be picked up from other Applications, like PilotsDeck to display the FCU or other Displays on the StreamDeck.<br/>
-Most Data is now retrieved via native Fenix L-Vars, but the Rudder Trim Dashed Indication still requires to access Memory directly.<br/>Currently compatible with Fenix **2.0.0.407** upwards and MSFS **SU14**.<br/><br/>
+This Tools reads the native Fenix L-Vars to compose the content of certain Quartz Displays in the Cockpit. The Display Contents are exported as FSUIPC Offsets.<br/>
+Currently compatible with Fenix **2.2.0.232** upwards and MSFS **SU15**.<br/><br/>
 Following Display-Values are available:
 - FCU Speed, Heading, Altitude and VS/FPA (Values and Is-Dashed State)
 - XPDR (live Input)
@@ -28,7 +28,7 @@ Following Display-Values are available:
 
 <br/><br/><br/>
 
-# Installation / Update
+# Installation / Update / Remove
 Basically: Just run the Installer - it will extract it for you to a fixed Location and will also install/update the neccessary Software to your PC/Sim. It even setups Auto-Start and creates a Link on the Desktop, if you want.<br/><br/>
 You can choose directly in the Installer to extract a preconfigured Configuration File for each of these Modes during Installation/Update. First-Time Installations will default to String/Offset Mode if "Do not change" is selected. Choosing any other Option for Updating/Reinstalling will overwrite the *whole* existing Configuration File.
 
